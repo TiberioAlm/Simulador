@@ -16,7 +16,13 @@ const fields: Array<{ key: keyof AliquotaState; label: string }> = [
   { key: 'aliqOutros', label: 'Outros tributos (%)' }
 ];
 
-export const AliquotasForm = () => {
+type AliquotasFormProps = {
+  className?: string;
+  variant?: 'card' | 'plain';
+  showTitle?: boolean;
+};
+
+export const AliquotasForm = ({ className = '', variant = 'card', showTitle = true }: AliquotasFormProps) => {
   const aliquotas = useAppStore((state) => state.aliquotas);
   const updateAliquota = useAppStore((state) => state.updateAliquota);
 
@@ -30,9 +36,11 @@ export const AliquotasForm = () => {
     updateAliquota(key, (Number.isFinite(parsed) ? parsed : 0) as never);
   };
 
+  const containerClass = [variant === 'card' ? 'card' : '', className].filter(Boolean).join(' ').trim();
+
   return (
-    <div className="card">
-      <h2>Alíquotas declaradas</h2>
+    <div className={containerClass || undefined}>
+      {showTitle && <h2>Alíquotas declaradas</h2>}
       <div className="grid two" style={{ marginTop: '1rem' }}>
         {fields.map((field) => (
           <div className="field" key={field.key}>

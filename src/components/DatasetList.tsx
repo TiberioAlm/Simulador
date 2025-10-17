@@ -16,24 +16,33 @@ const tipoLabel = (tipo: string) => {
   return tipo;
 };
 
-export const DatasetList = () => {
+type DatasetListProps = {
+  className?: string;
+  variant?: 'card' | 'plain';
+  showTitle?: boolean;
+  emptyHint?: string;
+};
+
+export const DatasetList = ({ className = '', variant = 'card', showTitle = true, emptyHint }: DatasetListProps) => {
   const dataset = useAppStore((state) => state.baseDataset);
   const removeItem = useAppStore((state) => state.removeItem);
 
+  const containerClass = [variant === 'card' ? 'card' : '', className].filter(Boolean).join(' ').trim();
+
   if (!dataset.length) {
     return (
-      <div className="card">
-        <h2>Itens simulados</h2>
+      <div className={containerClass || undefined}>
+        {showTitle && <h2>Itens simulados</h2>}
         <p style={{ marginTop: '1rem', color: 'var(--muted, #475569)' }}>
-          Nenhum item na base de comparação ainda. Adicione um item para iniciar a simulação.
+          {emptyHint ?? 'Nenhum item na base de comparação ainda. Adicione um item para iniciar a simulação.'}
         </p>
       </div>
     );
   }
 
   return (
-    <div className="card">
-      <h2>Itens simulados</h2>
+    <div className={containerClass || undefined}>
+      {showTitle && <h2>Itens simulados</h2>}
       <div className="dataset-list" style={{ marginTop: '1rem' }}>
         {dataset.map((item) => {
           const scenario = SCENARIO_CONFIG[item.cenario];

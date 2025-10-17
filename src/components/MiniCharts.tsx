@@ -36,7 +36,13 @@ const topN = (items: SimulationSummaryItem[], limit = 4) =>
     .sort((a, b) => (b.value || 0) - (a.value || 0))
     .slice(0, limit);
 
-export const MiniCharts = () => {
+type MiniChartsProps = {
+  className?: string;
+  variant?: 'card' | 'plain';
+  showTitle?: boolean;
+};
+
+export const MiniCharts = ({ className = '', variant = 'card', showTitle = true }: MiniChartsProps) => {
   const resultado = useAppStore((state) => state.resultado);
   const tema = useAppStore((state) => state.tema);
 
@@ -72,9 +78,11 @@ export const MiniCharts = () => {
     ]
   });
 
+  const containerClass = [variant === 'card' ? 'card' : '', className].filter(Boolean).join(' ').trim();
+
   return (
-    <div className="card">
-      <h2>Distribuição visual</h2>
+    <div className={containerClass || undefined}>
+      {showTitle && <h2>Distribuição visual</h2>}
       <div className="grid two" style={{ marginTop: '1rem' }}>
         <div className="chart-wrapper">
           <Bar

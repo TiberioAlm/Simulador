@@ -1,13 +1,21 @@
 import { fmtAliq, fmtBase, fmtMon, fmtPct } from '../lib/format';
 import { useAppStore } from '../state/store';
 
-export const SimulationReport = () => {
+type SimulationReportProps = {
+  className?: string;
+  variant?: 'card' | 'plain';
+  showTitle?: boolean;
+};
+
+export const SimulationReport = ({ className = '', variant = 'card', showTitle = true }: SimulationReportProps) => {
   const resultado = useAppStore((state) => state.resultado);
+
+  const containerClass = [variant === 'card' ? 'card' : '', className].filter(Boolean).join(' ').trim();
 
   if (!resultado) {
     return (
-      <div className="card">
-        <h2>Resumo comparativo</h2>
+      <div className={containerClass || undefined}>
+        {showTitle && <h2>Resumo comparativo</h2>}
         <p style={{ marginTop: '1rem', color: 'var(--muted, #475569)' }}>
           Execute a simulação para visualizar o comparativo entre o modelo atual e o cenário CBS/IBS.
         </p>
@@ -19,8 +27,8 @@ export const SimulationReport = () => {
   const diffPct = resultado.totalAtual > 0 ? (diff / resultado.totalAtual) * 100 : 0;
 
   return (
-    <div className="card">
-      <h2>Resumo comparativo</h2>
+    <div className={containerClass || undefined}>
+      {showTitle && <h2>Resumo comparativo</h2>}
       <div className="summary-callout" style={{ marginTop: '1rem' }}>
         <div>
           <strong>{resultado.tituloAtual}</strong>

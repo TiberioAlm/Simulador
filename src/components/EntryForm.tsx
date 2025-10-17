@@ -13,7 +13,13 @@ const anexoOptions = [
   { value: 'V', label: 'Anexo V (Serviços — Fator R)' }
 ];
 
-export const EntryForm = () => {
+type EntryFormProps = {
+  className?: string;
+  variant?: 'card' | 'plain';
+  showTitle?: boolean;
+};
+
+export const EntryForm = ({ className = '', variant = 'card', showTitle = true }: EntryFormProps) => {
   const entrada = useAppStore((state) => state.entrada);
   const updateEntrada = useAppStore((state) => state.updateEntrada);
 
@@ -66,9 +72,11 @@ export const EntryForm = () => {
     }
   };
 
+  const containerClass = [variant === 'card' ? 'card' : '', className].filter(Boolean).join(' ').trim();
+
   return (
-    <div className="card">
-      <h2>Dados da operação</h2>
+    <div className={containerClass || undefined}>
+      {showTitle && <h2>Dados da operação</h2>}
       <div className="grid two" style={{ marginTop: '1rem' }}>
         <div className="field">
           <label htmlFor="tipo">Tipo de operação</label>
