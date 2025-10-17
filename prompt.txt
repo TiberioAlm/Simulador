@@ -1,0 +1,184 @@
+Você é um(a) arquiteto(a) front-end sênior. Converta o repositório abaixo em uma SPA React (Vite + TypeScript) preservando layout, tema claro/escuro, acessibilidade, comportamento, cálculos e gráficos.
+
+==============================
+## 0) PREFERÊNCIAS (opcional)
+# Se deixar em branco, use os DEFAULTS entre <DEFAULTS>.
+
+Projeto:
+- Nome do projeto: [PREENCHER]  (ex.: fiscal-flash)
+- Gerenciador: [npm|pnpm|yarn]  (DEFAULT: npm)
+- Lint/format: [eslint+prettier|eslint|nenhum] (DEFAULT: eslint+prettier)
+- Testes: [vitest+rtl|nenhum] (DEFAULT: vitest+rtl)
+
+Estado:
+- Store: [zustand|context+reducer] (DEFAULT: zustand)
+- Persistência: [localStorage|nenhum] (DEFAULT: localStorage, chave "fiscalflash:last")
+
+UI/Estilos:
+- Manter o CSS do repo? [sim|não] (DEFAULT: sim; extrair tokens de tema)
+- Biblioteca UI: [nenhuma|headless-ui] (DEFAULT: nenhuma)
+- Ícones: [nenhum|lucide-react] (DEFAULT: nenhum)
+
+Gráficos:
+- Lib: [chart.js|react-chartjs-2] (DEFAULT: chart.js)
+- Tema dinâmico nos charts? [sim|não] (DEFAULT: sim)
+
+I18N/Numérico:
+- Locale: [pt-BR|...] (DEFAULT: pt-BR)
+- Moeda padrão: [BRL|...] (DEFAULT: BRL)
+- Casas decimais: [0|2|3] (DEFAULT: 2)
+- Máscara de entrada: [simpleBR|nenhuma] (DEFAULT: simpleBR)
+
+Acessibilidade:
+- Manter roles/aria originais? [sim|não] (DEFAULT: sim)
+- Foco visível e atalhos (Ctrl+Enter para "Simular")? [sim|não] (DEFAULT: sim)
+
+Entrega:
+- Saída: [UM script setup.sh criando tudo] (obrigatório)
+- Checagem: [smoke test com dados falsos] (DEFAULT: sim)
+
+<DEFAULTS>
+nome=fiscal-flash, gerenciador=npm, lint=eslint+prettier, testes=vitest+rtl,
+store=zustand, persist=localStorage("fiscalflash:last"),
+css=manter, ui=nenhuma, icones=nenhum,
+charts=chart.js(com tema dinâmico),
+locale=pt-BR, moeda=BRL, casas=2, mascara=simpleBR,
+a11y=manter roles/aria e foco visível,
+entrega=script único setup.sh, smokeTest=sim
+</DEFAULTS>
+
+==============================
+## 1) FONTE (repositório base)
+
+# Estes são os arquivos CANÔNICOS:
+RAW_INDEX="https://raw.githubusercontent.com/TiberioAlm/Simulador/main/public/index.html"
+RAW_CSS="https://raw.githubusercontent.com/TiberioAlm/Simulador/main/public/assets/styles.css"
+RAW_JS="https://raw.githubusercontent.com/TiberioAlm/Simulador/main/public/assets/main.js"
+# Materiais de referência devem ir para public/legislacao (espelhar docs/legislacao do repo).
+
+==============================
+## 2) REGRAS DE CONVERSÃO
+
+### Arquitetura & Stack
+- Criar projeto com **Vite + React + TypeScript**.
+- Estrutura:
+  src/
+    main.tsx
+    App.tsx
+    styles/theme.css
+    lib/
+      format.ts
+      calc.ts
+      scenario.ts
+    state/
+      store.ts
+      useLocalStorage.ts
+    components/
+      Navbar/
+        Navbar.tsx
+        ThemeToggle.tsx
+      Panels/
+        ScenarioPanel.tsx
+        EntradaForm.tsx
+        ComprasDespesasForm.tsx
+        AliquotasTabs.tsx
+        SimplesResumoCard.tsx
+      BaseDataset/
+        BaseDataset.tsx
+        ReductionModal.tsx
+      Reports/
+        AtualTable.tsx
+        NovoTable.tsx
+        Comparativo.tsx
+        MiniCharts.tsx
+      Common/
+        Section.tsx
+        Button.tsx
+        IconBtn.tsx
+        Chip.tsx
+        StatCard.tsx
+
+### Importação da base do repo
+- Baixe `index.html`, `assets/styles.css`, `assets/main.js` das URLs RAW acima e trate-os como **fonte da verdade**.
+- `styles.css` → `src/styles/theme.css` (preservar tokens, variáveis e media queries).
+- `main.js` → migrar **toda lógica** em módulos TypeScript:
+  - `lib/format.ts` (parseBR, fmtMon, fmtPct, fmtAliq, arredondamento)
+  - `lib/calc.ts` (todas as funções de cálculo/agrupamento/cenários)
+  - `lib/scenario.ts` (constantes de cenários, splits, presets)
+- Qualquer referência a recursos de `docs/legislacao/` → copiar para `public/legislacao/` do app.
+
+### Comportamento & Interações
+- Substituir manipulação direta de DOM (getElementById/innerHTML/classList) por estado + props controladas.
+- Preservar fluxos: Simular, Reset, Exportar PDF (window.print), abas, edição de itens e reduções/créditos.
+- Sincronizar tema (`data-theme` no `<html>`) e `<meta name="theme-color">`.
+
+### Charts
+- Usar **Chart.js** (ou `react-chartjs-2` se preferido) e aplicar tema dinâmico via `applyChartTheme(theme)`.
+- Replicar gráficos existentes do `main.js`.
+
+### Acessibilidade
+- Manter/melhorar `role`, `aria-*`, `aria-live`, “skip to content” e foco visível.
+
+### Persistência
+- Persistir e restaurar snapshot no `localStorage` usando chave `"fiscalflash:last"`.
+
+### Aceite (DoD)
+- Números/percentuais idênticos ao site original para entradas equivalentes.
+- Tema claro/escuro preservado.
+- A11y ok + restauração automática do último snapshot.
+
+==============================
+## 3) SAÍDA OBRIGATÓRIA
+
+**Entregue somente**:
+1) Um arquivo **`setup.sh`** (macOS/Linux) que:
+   - Cria o projeto (`npm create vite@latest <nome> -- --template react-ts`).
+   - Instala deps: `chart.js` (e `react-chartjs-2` se escolhido), `zustand` (se store=zustand), `vitest`, `@testing-library/react`, `eslint`, `prettier`.
+   - **Baixa os 3 arquivos RAW** do GitHub e os usa para gerar os módulos TS (parsear e redistribuir lógica do `main.js`).
+   - Escreve todos os arquivos da estrutura acima via *heredoc* com **conteúdo completo**.
+   - Ajusta `index.html` (data-theme no `<html>`, `<meta name="theme-color">`) e scripts `dev/build/test/lint/preview`.
+
+2) Ao final, imprima instruções:
+   - `bash setup.sh && cd <nome> && npm run dev`
+   - Passos do **smoke test** (inputs de exemplo → valores esperados nos cards/tabelas/gráficos).
+
+3) Código com **TypeScript estrito**, sem `any` desnecessário e sem DOM imperativo (exceto tema/meta/print).
+
+==============================
+## 4) IMPLEMENTAÇÃO MÍNIMA (conteúdos esperados)
+
+### src/lib/format.ts
+- `parseBR(str): number` — aceita `1.234,56`, `1234,56`, `1234.56`, trata vazios.
+- `fmtMon(n, moeda='BRL', casas=2): string` — `Intl.NumberFormat`.
+- `fmtPct(n)`, `fmtAliq(n)` e arredondamento ties-to-even (se aplicável).
+
+### src/state/store.ts
+- Campos: `cenario`, `regimeTrib`, `meses`, `moeda`, `casas`, `entrada`, `aliquotas`, `opcoes`, `reducoes`, `baseDataset`, `sn`, `tema`.
+- Ações: `set()`, `addItem()`, `removeItem()`, `simulate()`, `reset()` (+ hidratação do localStorage).
+
+### src/lib/calc.ts
+- Portar **todas** as funções do `main.js`: avaliação de entradas, agregações, regras por regime e “novo sistema” se houver (CBS/IBS/Seletivo).
+- Expor `runSimulation(state): ViewModel` para telas/tabelas/charts.
+
+### Componentes
+- **Navbar** (título, `<ThemeToggle/>`, botão “Exportar PDF”).
+- **ScenarioPanel**, **EntradaForm**, **ComprasDespesasForm**, **AliquotasTabs**, **SimplesResumoCard**.
+- **BaseDataset** (cards editáveis, chips, `ReductionModal`).
+- **Reports**: **AtualTable**, **NovoTable**, **Comparativo**, **MiniCharts**.
+
+### src/styles/theme.css
+- Migrar tokens/variáveis do `styles.css` e regras responsivas.
+
+### Tests (se habilitado)
+- 1 teste de formatação numérica.
+- 1 teste de cálculo (snapshot simples).
+- 1 teste de interação (adicionar item → tabela/summary atualiza).
+
+==============================
+## 5) NOTAS
+- **Não** usar Bootstrap/Tailwind se não estiver no repo.
+- Evitar dependências desnecessárias.
+- Garantir que os gráficos e o tema respondam ao toggle sem recarregar.
+- Documentar por comentários onde foram feitos mapeamentos diretos do `main.js`.
+
+(FIM DO PROMPT)
