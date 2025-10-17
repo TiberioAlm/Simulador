@@ -7,6 +7,7 @@ import DatasetList from './components/DatasetList';
 import SimulationReport from './components/SimulationReport';
 import MiniCharts from './components/MiniCharts';
 import { useAppStore } from './state/store';
+import { useEffect } from 'react';
 import { fmtMon, fmtPct } from './lib/format';
 import {
   AddIcon,
@@ -60,6 +61,17 @@ const App = () => {
 
   return (
     <div className="app-shell">
+      {/** Atalho de teclado: Ctrl+Enter para simular */}
+      {useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'enter') {
+            e.preventDefault();
+            simulate();
+          }
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+      }, [simulate])}
       <section className="hero-card card">
         <div className="hero-header">
           <div className="hero-brand">

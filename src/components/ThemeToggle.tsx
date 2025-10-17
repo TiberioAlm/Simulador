@@ -7,6 +7,8 @@ export const ThemeToggle = () => {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', tema);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', tema === 'dark' ? '#0f172a' : '#ffffff');
   }, [tema]);
 
   return (

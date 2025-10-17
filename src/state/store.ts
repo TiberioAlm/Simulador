@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { aggregateEntries, SimulationEntry, simulateEntries } from '../lib/calc';
 import { DEFAULT_ACTIVITY_ID, OPERATION_ACTIVITIES, SimplesAnexo } from '../lib/scenario';
 
@@ -181,7 +182,8 @@ const buildEntry = (state: AppState): SimulationEntry => {
 };
 
 export const useAppStore = create<AppState>()(
-  immer((set, get) => ({
+  persist(
+    immer((set, get) => ({
     tema: 'light',
     cenario: 'piloto2026',
     regime: 'real',
@@ -254,5 +256,19 @@ export const useAppStore = create<AppState>()(
         state.snapshot = null;
       });
     }
-  }))
+  })),
+    {
+      name: 'fiscalflash:last',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (s) => ({
+        tema: s.tema,
+        cenario: s.cenario,
+        regime: s.regime,
+        entrada: s.entrada,
+        aliquotas: s.aliquotas,
+        baseDataset: s.baseDataset,
+        snapshot: s.snapshot
+      })
+    }
+  )
 );
