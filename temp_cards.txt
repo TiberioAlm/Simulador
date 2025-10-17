@@ -1,0 +1,247 @@
+<section id="cardsPadrao" class="grid grid-cols-12 gap-6 hidden">
+      <div id="cardAtual" class="card overflow-x-auto col-span-12 lg:col-span-6">
+        <h2 id="titleAtual" class="font-medium mb-3">Modelo atual</h2>
+        <table class="min-w-full text-sm tbl">
+          <colgroup>
+            <col class="col-nome">
+            <col class="col-base">
+            <col class="col-aliq">
+            <col class="col-valor">
+          </colgroup>
+          <thead><tr><th>Tributo</th><th class="text-right">Base</th><th class="text-right">Alíquota</th><th class="text-right">Valor</th></tr></thead>
+          <tbody id="tAtual"><tr>
+          <td class="text-slate-600">PIS</td>
+          <td class="text-right">R$&nbsp;50.000,00</td>
+          <td class="text-right">1,65%</td>
+          <td class="text-right">R$&nbsp;825,00</td>
+        </tr><tr>
+          <td class="text-slate-600">COFINS</td>
+          <td class="text-right">R$&nbsp;50.000,00</td>
+          <td class="text-right">7,60%</td>
+          <td class="text-right">R$&nbsp;3.800,00</td>
+        </tr><tr>
+          <td class="text-slate-600">ISS</td>
+          <td class="text-right">R$&nbsp;100.000,00</td>
+          <td class="text-right">5,00%</td>
+          <td class="text-right">R$&nbsp;5.000,00</td>
+        </tr><tr>
+          <td class="text-slate-600">IRPJ</td>
+          <td class="text-right">R$&nbsp;20.000,00</td>
+          <td class="text-right">15,00%</td>
+          <td class="text-right">R$&nbsp;3.000,00</td>
+        </tr><tr>
+          <td class="text-slate-600">CSLL</td>
+          <td class="text-right">R$&nbsp;20.000,00</td>
+          <td class="text-right">9,00%</td>
+          <td class="text-right">R$&nbsp;1.800,00</td>
+        </tr></tbody>
+          <tfoot>
+            <tr><td colspan="3">Total (Atual)</td><td id="totAtual" class="text-right">R$&nbsp;14.425,00</td></tr>
+            <tr><td colspan="3">Alíquota efetiva</td><td id="efetAtual" class="text-right">14,42%</td></tr>
+          </tfoot>
+        </table>
+        <div id="listAtual" class="mobile-list hidden"></div>
+      </div>
+      <div id="cardNovo" class="card overflow-x-auto col-span-12 lg:col-span-6">
+        <h2 class="font-medium mb-3" id="tituloNovo">Cenário (CBS/IBS)</h2>
+        <table class="min-w-full text-sm tbl">
+          <colgroup>
+            <col class="col-nome">
+            <col class="col-base">
+            <col class="col-aliq">
+            <col class="col-valor">
+          </colgroup>
+          <thead><tr><th>Tributo</th><th class="text-right">Base</th><th class="text-right">Alíquota</th><th class="text-right">Valor</th></tr></thead>
+          <tbody id="tNovo"><tr>
+          <td class="text-slate-600">CBS (0,9%) – teste</td>
+          <td class="text-right">R$&nbsp;100.000,00</td>
+          <td class="text-right">0,90%</td>
+          <td class="text-right">R$&nbsp;900,00</td>
+        </tr><tr>
+          <td class="text-slate-600">IBS (0,1%) – teste</td>
+          <td class="text-right">R$&nbsp;100.000,00</td>
+          <td class="text-right">0,10%</td>
+          <td class="text-right">R$&nbsp;100,00</td>
+        </tr><tr>
+          <td class="text-slate-600">Compensação CBS/IBS × PIS/COFINS</td>
+          <td class="text-right">—</td>
+          <td class="text-right">—</td>
+          <td class="text-right">-R$&nbsp;1.000,00</td>
+        </tr><tr>
+          <td class="text-slate-600">PIS+COFINS após compensação</td>
+          <td class="text-right">R$&nbsp;50.000,00</td>
+          <td class="text-right">7,25%</td>
+          <td class="text-right">R$&nbsp;3.625,00</td>
+        </tr><tr>
+          <td class="text-slate-600">ISS</td>
+          <td class="text-right">R$&nbsp;100.000,00</td>
+          <td class="text-right">5,00%</td>
+          <td class="text-right">R$&nbsp;5.000,00</td>
+        </tr><tr>
+          <td class="text-slate-600">IRPJ</td>
+          <td class="text-right">R$&nbsp;20.000,00</td>
+          <td class="text-right">15,00%</td>
+          <td class="text-right">R$&nbsp;3.000,00</td>
+        </tr><tr>
+          <td class="text-slate-600">CSLL</td>
+          <td class="text-right">R$&nbsp;20.000,00</td>
+          <td class="text-right">9,00%</td>
+          <td class="text-right">R$&nbsp;1.800,00</td>
+        </tr></tbody>
+          <tfoot>
+            <tr><td id="rotTotNovo" colspan="3">Total (Piloto 2026)</td><td id="totNovo" class="text-right">R$&nbsp;14.425,00</td></tr>
+            <tr><td colspan="3">Alíquota efetiva</td><td id="efetNovo" class="text-right">14,42%</td></tr>
+          </tfoot>
+        </table>
+        <div id="listNovo" class="mobile-list hidden"></div>
+      </div>
+    </section>
+
+    <section id="comparativoWrap" class="card mt-5 hidden">
+      <h2 class="font-medium mb-3">Comparativo</h2>
+      <div class="grid md:grid-cols-3 gap-4">
+        <div id="cardDifAbs" class="diff-card diff-neutral">
+          <div class="diff-label">Diferença absoluta</div>
+          <div id="difAbsIcon" class="diff-icon">■</div>
+          <div id="difAbs" class="diff-value">R$&nbsp;0,00</div>
+          <div id="difAbsHint" class="diff-hint">Sem variação</div>
+        </div>
+        <div id="cardDifPct" class="diff-card diff-neutral">
+          <div class="diff-label">Variação (%)</div>
+          <div id="difPct" class="diff-value">0,00%</div>
+          <div class="diff-bar mt-1">
+            <div id="difPctBar" class="diff-bar-fill diff-neutral" style="width: 0%;"></div>
+          </div>
+          <div id="difPctHint" class="diff-hint">Sem variação</div>
+        </div>
+        <div id="cardTotais" class="diff-card diff-neutral">
+          <div class="diff-label">Totais comparados</div>
+          <div id="totIcon" class="diff-icon">⇆</div>
+          <div class="diff-text space-y-1">
+            <div><span class="font-semibold">Atual:</span> <span id="totAtualResumo">R$&nbsp;14.425,00</span></div>
+            <div><span class="font-semibold" id="totNovoLabel">Cenário:</span> <span id="totNovoResumo">R$&nbsp;14.425,00</span></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-5">
+        <h3 class="font-medium mb-2">Relatório resumido da composição</h3>
+        <div class="overflow-x-auto">
+          <table id="tblResumo" class="tbl tbl-resumo w-full text-sm">
+            <colgroup>
+              <col class="col-tributo">
+              <col class="col-bloco">
+              <col class="col-bloco">
+              <col class="col-bloco">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Tributo</th>
+                <th id="resHeadAtual">Modelo atual</th>
+                <th id="resHeadNovo">Piloto 2026 (IBS 1% compensado)</th>
+                <th>Diferença</th>
+              </tr>
+            </thead>
+            <tbody id="resumoBody"><tr>
+            <td>ISS</td>
+            <td class="text-right cell-stack"><div class="font-semibold">R$&nbsp;5.000,00</div><div class="text-xs text-slate-500">Participação: 34,66%</div><div class="text-xs text-slate-400">Base: R$&nbsp;100.000,00</div><div class="text-xs text-slate-400">Alíquota: 5,00%</div></td>
+            <td class="text-right cell-stack"><div class="font-semibold">R$&nbsp;5.000,00</div><div class="text-xs text-slate-500">Participação: 34,66%</div><div class="text-xs text-slate-400">Base: R$&nbsp;100.000,00</div><div class="text-xs text-slate-400">Alíquota: 5,00%</div></td>
+            <td class="text-right cell-stack "><div class="font-semibold">R$&nbsp;0,00</div><div class="text-xs text-slate-500">Var %: 0,00%</div></td>
+          </tr><tr>
+            <td>IRPJ</td>
+            <td class="text-right cell-stack"><div class="font-semibold">R$&nbsp;3.000,00</div><div class="text-xs text-slate-500">Participação: 20,80%</div><div class="text-xs text-slate-400">Base: R$&nbsp;20.000,00</div><div class="text-xs text-slate-400">Alíquota: 15,00%</div></td>
+            <td class="text-right cell-stack"><div class="font-semibold">R$&nbsp;3.000,00</div><div class="text-xs text-slate-500">Participação: 20,80%</div><div class="text-xs text-slate-400">Base: R$&nbsp;20.000,00</div><div class="text-xs text-slate-400">Alíquota: 15,00%</div></td>
+            <td class="text-right cell-stack "><div class="font-semibold">R$&nbsp;0,00</div><div class="text-xs text-slate-500">Var %: 0,00%</div></td>
+          </tr><tr>
+            <td>COFINS</td>
+            <td class="text-right cell-stack"><div class="font-semibold">R$&nbsp;3.800,00</div><div class="text-xs text-slate-500">Participação: 26,34%</div><div class="text-xs text-slate-400">Base: R$&nbsp;50.000,00</div><div class="text-xs text-slate-400">Alíquota: 7,60%</div></td>
+            <td class="text-right cell-stack"><div class="font-semibold">R$&nbsp;2.978,38</div><div class="text-xs text-slate-500">Participação: 20,65%</div><div class="text-xs text-slate-400">Base: R$&nbsp;50.000,00</div><div class="text-xs text-slate-400">Alíquota: 5,96%</div><div class="text-xs text-slate-400">Após compensação CBS/IBS</div></td>
+            <td class="text-right cell-stack diff-neg"><div class="font-semibold">-R$&nbsp;821,62</div><div class="text-xs text-slate-500">Var %: -21,62%</div></td>
+          </tr><tr>
+            <td>CSLL</td>
+            <td class="text-right cell-stack"><div class="font-semibold">R$&nbsp;1.800,00</div><div class="text-xs text-slate-500">Participação: 12,48%</div><div class="text-xs text-slate-400">Base: R$&nbsp;20.000,00</div><div class="text-xs text-slate-400">Alíquota: 9,00%</div></td>
+            <td class="text-right cell-stack"><div class="font-semibold">R$&nbsp;1.800,00</div><div class="text-xs text-slate-500">Participação: 12,48%</div><div class="text-xs text-slate-400">Base: R$&nbsp;20.000,00</div><div class="text-xs text-slate-400">Alíquota: 9,00%</div></td>
+            <td class="text-right cell-stack "><div class="font-semibold">R$&nbsp;0,00</div><div class="text-xs text-slate-500">Var %: 0,00%</div></td>
+          </tr><tr>
+            <td>CBS (0,9%) – teste</td>
+            <td class="text-right cell-stack"><div class="text-slate-400">—</div></td>
+            <td class="text-right cell-stack"><div class="font-semibold">R$&nbsp;900,00</div><div class="text-xs text-slate-500">Participação: 6,24%</div><div class="text-xs text-slate-400">Base: R$&nbsp;100.000,00</div><div class="text-xs text-slate-400">Alíquota: 0,90%</div><div class="text-xs text-slate-400">Piloto 2026</div></td>
+            <td class="text-right cell-stack diff-pos"><div class="font-semibold">R$&nbsp;900,00</div><div class="text-xs text-slate-500">Sem base no modelo atual</div></td>
+          </tr><tr>
+            <td>PIS</td>
+            <td class="text-right cell-stack"><div class="font-semibold">R$&nbsp;825,00</div><div class="text-xs text-slate-500">Participação: 5,72%</div><div class="text-xs text-slate-400">Base: R$&nbsp;50.000,00</div><div class="text-xs text-slate-400">Alíquota: 1,65%</div></td>
+            <td class="text-right cell-stack"><div class="font-semibold">R$&nbsp;646,62</div><div class="text-xs text-slate-500">Participação: 4,48%</div><div class="text-xs text-slate-400">Base: R$&nbsp;50.000,00</div><div class="text-xs text-slate-400">Alíquota: 1,29%</div><div class="text-xs text-slate-400">Após compensação CBS/IBS</div></td>
+            <td class="text-right cell-stack diff-neg"><div class="font-semibold">-R$&nbsp;178,38</div><div class="text-xs text-slate-500">Var %: -21,62%</div></td>
+          </tr><tr>
+            <td>IBS (0,1%) – teste</td>
+            <td class="text-right cell-stack"><div class="text-slate-400">—</div></td>
+            <td class="text-right cell-stack"><div class="font-semibold">R$&nbsp;100,00</div><div class="text-xs text-slate-500">Participação: 0,69%</div><div class="text-xs text-slate-400">Base: R$&nbsp;100.000,00</div><div class="text-xs text-slate-400">Alíquota: 0,10%</div><div class="text-xs text-slate-400">Piloto 2026</div></td>
+            <td class="text-right cell-stack diff-pos"><div class="font-semibold">R$&nbsp;100,00</div><div class="text-xs text-slate-500">Sem base no modelo atual</div></td>
+          </tr><tr>
+            <td>Compensação CBS/IBS × PIS/COFINS</td>
+            <td class="text-right cell-stack"><div class="text-slate-400">—</div></td>
+            <td class="text-right cell-stack"><div class="font-semibold">-R$&nbsp;1.000,00</div><div class="text-xs text-slate-500">Participação: -6,93%</div><div class="text-xs text-slate-400">Base: R$&nbsp;0,00</div><div class="text-xs text-slate-400">Crédito compensatório</div></td>
+            <td class="text-right cell-stack diff-neg"><div class="font-semibold">-R$&nbsp;1.000,00</div><div class="text-xs text-slate-500">Sem base no modelo atual</div></td>
+          </tr></tbody>
+            <tfoot>
+              <tr>
+                <td class="font-semibold">Total</td>
+                <td id="resTotAtual" class="text-right font-semibold">R$&nbsp;14.425,00</td>
+                <td id="resTotNovo" class="text-right font-semibold">R$&nbsp;14.425,00</td>
+                <td id="resTotDif" class="text-right font-semibold">R$&nbsp;0,00</td>
+              </tr>
+            </tfoot>
+          </table>
+          <!-- Mobile cards for resumo comparativo (shown <=420px) -->
+          <div id="resumoCards" class="grid gap-2"></div>
+        </div>
+      </div>
+      <div id="chartWidgets" class="mt-5 grid gap-4 md:grid-cols-3">
+        <section class="w-card">
+          <div class="w-card__head">
+            <div class="w-card__title">Totais</div>
+            <div class="w-card__meta">Atual × Cenário</div>
+          </div>
+          <div class="chart-canvas-wrap"><canvas id="chartMiniTotais" aria-label="Mini gráfico de totais (Atual × Cenário)" role="img"></canvas></div>
+        </section>
+        <section class="w-card">
+          <div class="w-card__head">
+            <div class="w-card__title">Distribuição (Atual)</div>
+            <div class="w-card__meta">Top 4 tributos</div>
+          </div>
+          <div class="chart-canvas-wrap"><canvas id="chartMiniAtual" aria-label="Mini gráfico: distribuição do modelo atual (Top 4)" role="img"></canvas></div>
+        </section>
+        <section class="w-card">
+          <div class="w-card__head">
+            <div class="w-card__title">Distribuição (Cenário)</div>
+            <div class="w-card__meta">Top 4 tributos</div>
+          </div>
+          <div class="chart-canvas-wrap"><canvas id="chartMiniCenario" aria-label="Mini gráfico: distribuição do cenário (Top 4)" role="img"></canvas></div>
+        </section>
+      </div>
+    </section>
+
+    <section id="sobre" class="card mt-6">
+      <h2 class="font-medium mb-2">Sobre a Reforma</h2>
+      <p class="text-sm text-slate-600">O Fiscal Flash auxilia na análise da transição para o IVA Dual (CBS/IBS) entre 2026 e 2033+, com parâmetros simplificados para estudo. As alíquotas são referências e podem variar conforme lei complementar.</p>
+    </section>
+
+    <section id="ajuda" class="card mt-5">
+        <h2 class="font-medium mb-2">Ajuda</h2>
+      <ul class="list-disc pl-5 text-sm text-slate-600 space-y-1">
+        <li>Selecione o <strong>cenário</strong> e o <strong>regime tributário</strong>.</li>
+        <li>Informe <strong>receita</strong> e <strong>compras e créditos</strong>; ajuste as bases específicas quando necessário.</li>
+        <li>Clique em <strong>Simular</strong> para calcular. Use <em>Limpar</em> para redefinir os campos.</li>
+        <li>Para salvar ou compartilhar, use <strong>Exportar PDF</strong> (impressão do relatório).</li>
+      </ul>
+      <div class="mt-3">
+        <h3 class="font-medium mb-1">Referências (legislação)</h3>
+        <ul class="list-disc pl-5 text-sm text-slate-600 space-y-1">
+          <li><a href="legislacao/tramitacao-plp-68-2024-redacao-final.pdf" target="_blank" rel="noopener noreferrer" class="text-indigo-700 underline">PLP 68/2024 – redação final</a></li>
+          <li><a href="legislacao/2024-02_ec-132_quadro_comparativo_nunes.pdf" target="_blank" rel="noopener noreferrer" class="text-indigo-700 underline">EC 132/2023 – quadro comparativo</a></li>
+          <li><a href="legislacao/relatorio-grupodetrabalho-reformatributaria_web-1-1.pdf" target="_blank" rel="noopener noreferrer" class="text-indigo-700 underline">Relatório GT Reforma Tributária</a></li>
+          <li><a href="legislacao/sumario-executivo-grupodetrabalho-reformatributaria_web.pdf" target="_blank" rel="noopener noreferrer" class="text-indigo-700 underline">Sumário Executivo – GT</a></li>
+          <li><a href="legislacao/perguntas-e-respostas-reforma-tributaria_.pdf" target="_blank" rel="noopener noreferrer" class="text-indigo-700 underline">Perguntas e Respostas</a></li>
+        </ul>
+      </div>
+    </section>

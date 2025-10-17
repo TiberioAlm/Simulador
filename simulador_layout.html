@@ -1,0 +1,1067 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Simulador IBS/CBS — Reforma Tributária</title>
+  <meta name="description" content="Simulador pedagógico de IBS/CBS com fluxo guiado e validações para contadores e analistas tributários." />
+
+  <style>
+    :root{
+      --bg: #0b0d12;
+      --surface: #121621;
+      --muted: #8b93a7;
+      --text: #e8edf7;
+      --brand: #5aa2ff;
+      --brand-2: #7cffda;
+      --ok: #31c48d;
+      --warn: #f59e0b;
+      --danger:#ef4444;
+      --line: #1e2433;
+      --focus: #94c5ff;
+      --chip: #1a2030;
+
+      --radius: 12px;
+      --radius-sm: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root{
+        --bg: #f5f7fb;
+        --surface: #ffffff;
+        --muted: #5c667a;
+        --text: #1a1e26;
+        --brand: #2457cf;
+        --brand-2: #0b9a7e;
+        --ok: #15803d;
+        --warn: #b45309;
+        --danger:#b91c1c;
+        --line: #e5e7ef;
+        --chip: #f0f3fb;
+        --focus: #2b6fff;
+      }
+    }
+
+    *{box-sizing: border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font: 16px/1.55 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Noto Sans", "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color: var(--text);
+      background: linear-gradient(180deg, var(--bg), #0d111a 40%, var(--bg));
+      background-attachment: fixed;
+    }
+
+    /* Shell */
+    .app{
+      max-width: 1080px;
+      margin: 24px auto 96px;
+      padding: 0 20px;
+    }
+    header.appbar{
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 14px 18px; background: var(--surface);
+      border: 1px solid var(--line); border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      position: sticky; top: 16px; z-index: 20;
+      backdrop-filter: blur(6px);
+    }
+    .brand{
+      display:flex; gap:12px; align-items:center;
+    }
+    .brand i{
+      width:36px; height:36px; border-radius:9px;
+      background: radial-gradient(120% 120% at 70% 30%, var(--brand), var(--brand-2));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 10px 20px rgba(0,0,0,.25);
+    }
+    .brand h1{font-size: 16px; margin:0}
+    .brand small{display:block; font-size:12px; color:var(--muted)}
+    .toolbar{
+      display:flex; gap:10px; align-items:center; flex-wrap: wrap;
+    }
+    .btn{
+      appearance:none; border: 1px solid var(--line); color:var(--text);
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.1));
+      padding: 10px 14px; border-radius: 10px; cursor: pointer;
+      transition: .15s ease; font-weight:600;
+    }
+    .btn:hover{transform: translateY(-1px)}
+    .btn:focus-visible{outline: 3px solid var(--focus); outline-offset: 2px}
+    .btn.primary{
+      border-color: transparent;
+      background: linear-gradient(180deg, var(--brand), #3a7bff);
+      color: white;
+    }
+    .btn.ghost{
+      background: transparent;
+    }
+    .btn.icon{display:inline-flex; gap:8px; align-items:center}
+    .kbd{
+      font-family: var(--mono); background: var(--chip); padding:2px 6px; border-radius:6px; border:1px solid var(--line); color:var(--muted);
+    }
+
+    /* Stepper */
+    .stepper{
+      display:grid; grid-template-columns: 1fr; gap: 16px; margin-top: 18px;
+    }
+    .steps{
+      display:grid;
+      grid-template-columns: repeat(7, minmax(0,1fr));
+      gap: 8px;
+      user-select:none;
+    }
+    .step{
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+      padding: 10px 12px;
+      display:flex; align-items:center; gap:10px; min-height: 48px;
+      cursor: pointer;
+    }
+    .step[aria-current="step"]{
+      border-color: var(--brand);
+      box-shadow: 0 0 0 1px var(--brand) inset;
+    }
+    .step small{color: var(--muted)}
+    .badge{
+      min-width: 26px; height:26px; border-radius:7px; display:grid; place-items:center;
+      background: var(--chip); color: var(--muted); font-weight:700;
+      border:1px solid var(--line);
+    }
+    .step.done .badge{
+      background: radial-gradient(100% 100% at 70% 30%, var(--brand), var(--brand-2));
+      color: #fff; border-color: transparent;
+    }
+    .panes{
+      background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    /* Forms */
+    form{display:grid; gap:18px}
+    .grid{
+      display:grid; gap:14px;
+      grid-template-columns: repeat(12, 1fr);
+    }
+    .col-12{grid-column: span 12}
+    .col-6{grid-column: span 6}
+    .col-4{grid-column: span 4}
+    .col-3{grid-column: span 3}
+    .col-2{grid-column: span 2}
+    @media (max-width: 880px){
+      .col-6, .col-4, .col-3, .col-2{grid-column: span 12}
+      .steps{grid-template-columns: 1fr 1fr}
+    }
+
+    .field{display:flex; flex-direction:column; gap:8px}
+    .field label{font-weight: 600}
+    .help{font-size: 12px; color: var(--muted)}
+    .row{display:flex; gap:10px; align-items:center; flex-wrap: wrap}
+    input[type="text"], input[type="number"], input[type="date"], select, textarea{
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.1));
+      border:1px solid var(--line);
+      padding: 10px 12px; border-radius: 10px; color: var(--text);
+    }
+    input::placeholder, textarea::placeholder{color: var(--muted)}
+    input:focus-visible, select:focus-visible, textarea:focus-visible{outline: 3px solid var(--focus); outline-offset: 2px}
+    .switch{display:inline-flex; align-items:center; gap:10px; cursor:pointer}
+    .switch input{appearance:none; width:44px; height:26px; border-radius: 14px; background: var(--chip); border:1px solid var(--line); position: relative; outline: none}
+    .switch input:after{
+      content:""; position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius: 50%;
+      background: linear-gradient(180deg, #fff, #dfe6f5); transition: transform .2s ease;
+      box-shadow: 0 6px 12px rgba(0,0,0,.25);
+    }
+    .switch input:checked{background: linear-gradient(180deg, var(--brand), #3a7bff)}
+    .switch input:checked:after{transform: translateX(18px)}
+    .chips{display:flex; gap:8px; flex-wrap:wrap}
+    .chip{
+      background: var(--chip); border:1px solid var(--line); color: var(--text);
+      padding: 6px 10px; border-radius: 999px; font-size: 13px; display:inline-flex; gap:8px; align-items:center;
+    }
+    .chip[data-variant="good"]{border-color: rgba(49,196,141,.3)}
+    .chip[data-variant="warn"]{border-color: rgba(245,158,11,.35)}
+    .chip[data-variant="bad"]{border-color: rgba(239,68,68,.35)}
+    .sep{height:1px; background: var(--line); margin: 4px 0 10px}
+    .actions{display:flex; justify-content:space-between; gap:10px; margin-top: 8px}
+    .actions .right{display:flex; gap:10px}
+
+    /* Table of items */
+    table{
+      width:100%; border-collapse: collapse; border-spacing: 0; overflow:hidden; border-radius: 10px; border:1px solid var(--line);
+    }
+    thead th{
+      text-align:left; font-size: 13px; color: var(--muted);
+      background: linear-gradient(180deg, var(--surface), rgba(0,0,0,.05));
+      position: sticky; top:0; z-index:1;
+      padding: 10px 10px; border-bottom:1px solid var(--line);
+    }
+    tbody td{
+      border-bottom: 1px solid var(--line);
+      padding: 8px 10px; vertical-align: top;
+    }
+    tbody tr:last-child td{border-bottom: 0}
+    .table-scroll{max-height: 320px; overflow:auto; border-radius: 10px}
+    .text-right{text-align:right}
+    .mono{font-family: var(--mono)}
+
+    /* Informers / alerts */
+    .alert{
+      border:1px solid var(--line); border-left:4px solid var(--brand);
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.06));
+      padding: 12px 14px; border-radius: 10px;
+    }
+    .alert.warn{border-left-color: var(--warn)}
+    .alert.ok{border-left-color: var(--ok)}
+    .alert.danger{border-left-color: var(--danger)}
+
+    /* Result cards */
+    .cards{display:grid; gap:12px; grid-template-columns: repeat(12,1fr)}
+    .card{grid-column: span 4; background: var(--surface); border:1px solid var(--line); border-radius: 12px; padding: 12px}
+    .card h4{margin:2px 0 6px 0}
+    .card .value{font: 700 22px/1 var(--mono)}
+    .note{font-size:12px; color:var(--muted)}
+
+    @media (max-width: 880px){ .card{grid-column: span 12} }
+
+    /* Footer */
+    footer{
+      margin-top: 28px; color: var(--muted); font-size: 12px;
+    }
+    .link{color: var(--brand); text-decoration: underline dotted}
+    .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border-width:0}
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="appbar" role="banner">
+      <div class="brand" aria-label="Identificação do simulador">
+        <i aria-hidden="true"></i>
+        <div>
+          <h1>Simulador IBS/CBS</h1>
+          <small>Fluxo guiado • Não-cumulativo • Por fora • Destino</small>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="btn ghost icon" type="button" id="btnLoad">
+          <span aria-hidden="true">📂</span> Carregar
+          <span class="kbd" aria-hidden="true">Ctrl/Cmd + O</span>
+        </button>
+        <button class="btn icon" type="button" id="btnSave">
+          <span aria-hidden="true">💾</span> Salvar
+          <span class="kbd" aria-hidden="true">Ctrl/Cmd + S</span>
+        </button>
+        <button class="btn primary icon" type="button" id="btnExport">
+          <span aria-hidden="true">⬇️</span> Exportar resultados (.json)
+        </button>
+      </div>
+    </header>
+
+    <main class="stepper" role="main">
+      <!-- STEPPER HEAD -->
+      <nav class="steps" role="tablist" aria-label="Passos do simulador">
+        <button class="step" role="tab" aria-selected="true" aria-current="step" aria-controls="pane-1" id="tab-1">
+          <span class="badge" aria-hidden="true">1</span>
+          <div>
+            <div><strong>Período & Transição</strong></div>
+            <small>Parâmetros do cálculo</small>
+          </div>
+        </button>
+        <button class="step" role="tab" aria-selected="false" aria-controls="pane-2" id="tab-2">
+          <span class="badge" aria-hidden="true">2</span>
+          <div>
+            <div><strong>Perfil do Contribuinte</strong></div>
+            <small>Regime e opções</small>
+          </div>
+        </button>
+        <button class="step" role="tab" aria-selected="false" aria-controls="pane-3" id="tab-3">
+          <span class="badge" aria-hidden="true">3</span>
+          <div>
+            <div><strong>Operação</strong></div>
+            <small>Natureza & destino</small>
+          </div>
+        </button>
+        <button class="step" role="tab" aria-selected="false" aria-controls="pane-4" id="tab-4">
+          <span class="badge" aria-hidden="true">4</span>
+          <div>
+            <div><strong>Itens & Base</strong></div>
+            <small>Produtos/Serviços</small>
+          </div>
+        </button>
+        <button class="step" role="tab" aria-selected="false" aria-controls="pane-5" id="tab-5">
+          <span class="badge" aria-hidden="true">5</span>
+          <div>
+            <div><strong>Regimes & Exceções</strong></div>
+            <small>Imunidade/Redução</small>
+          </div>
+        </button>
+        <button class="step" role="tab" aria-selected="false" aria-controls="pane-6" id="tab-6">
+          <span class="badge" aria-hidden="true">6</span>
+          <div>
+            <div><strong>Alíquotas & Créditos</strong></div>
+            <small>IBS/CBS & créditos</small>
+          </div>
+        </button>
+        <button class="step" role="tab" aria-selected="false" aria-controls="pane-7" id="tab-7">
+          <span class="badge" aria-hidden="true">7</span>
+          <div>
+            <div><strong>Apuração</strong></div>
+            <small>Resumo & exportação</small>
+          </div>
+        </button>
+      </nav>
+
+      <!-- PANES -->
+      <section class="panes" tabindex="0" role="tabpanel" id="pane-1" aria-labelledby="tab-1">
+        <form id="form-1" novalidate>
+          <div class="grid">
+            <div class="col-6">
+              <div class="field">
+                <label for="ano">Ano de apuração</label>
+                <input type="number" id="ano" min="2024" max="2100" value="2026" required />
+                <div class="help">Usado para considerar regras de teste/transição e alíquotas de referência parametrizadas pelo usuário. :contentReference[oaicite:14]{index=14}</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="field">
+                <label class="switch" for="modoTransicao">
+                  <input id="modoTransicao" type="checkbox" />
+                  <span>Aplicar regras de transição (teste/implantação gradual)</span>
+                </label>
+                <div class="help">Permite simular fases de teste (alíquotas simbólicas) e substituição gradual conforme o cronograma de implantação. :contentReference[oaicite:15]{index=15}</div>
+              </div>
+            </div>
+
+            <div class="col-12 alert">
+              <strong>Importante:</strong> este simulador é <em>pedagógico</em>, não substitui a legislação ou sistemas oficiais e utiliza **alíquotas informadas pelo usuário** (as definitivas dependem de legislação de cada ente e de resoluções sobre alíquota de referência). :contentReference[oaicite:16]{index=16}
+            </div>
+          </div>
+
+          <div class="actions">
+            <span class="note">Use <span class="kbd">Tab</span> para navegar • <span class="kbd">Enter</span> para avançar</span>
+            <div class="right">
+              <button class="btn primary" type="submit">Avançar</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section hidden class="panes" tabindex="0" role="tabpanel" id="pane-2" aria-labelledby="tab-2">
+        <form id="form-2" novalidate>
+          <div class="grid">
+            <div class="col-6">
+              <div class="field">
+                <label for="regime">Regime do contribuinte</label>
+                <select id="regime" required>
+                  <option value="">Selecione…</option>
+                  <option value="regular">Regime regular (IBS/CBS não-cumulativos)</option>
+                  <option value="simples">Simples Nacional</option>
+                  <option value="mei">MEI</option>
+                </select>
+                <div class="help">Optantes do Simples/MEI podem simular apuração pelo regime regular (quando cabível), inclusive para transferência de crédito ao adquirente, conforme LC. :contentReference[oaicite:17]{index=17}</div>
+              </div>
+            </div>
+            <div class="col-6" id="optSimplesWrap" hidden>
+              <div class="field">
+                <label class="switch" for="optSimplesRegular">
+                  <input id="optSimplesRegular" type="checkbox" />
+                  <span>Simular IBS/CBS pelo regime regular (optante do Simples)</span>
+                </label>
+                <div class="help">Quando marcado, o cálculo usa débito/crédito (não‑cumulativo) para IBS/CBS. :contentReference[oaicite:18]{index=18}</div>
+              </div>
+            </div>
+
+            <div class="col-12 sep"></div>
+
+            <div class="col-6">
+              <div class="field">
+                <label for="cnpj">CNPJ (opcional)</label>
+                <input type="text" id="cnpj" inputmode="numeric" placeholder="___.___.___/____-__" />
+                <div class="help">Uso apenas para identificação no arquivo exportado.</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="field">
+                <label for="razao">Razão social (opcional)</label>
+                <input type="text" id="razao" placeholder="Empresa Exemplo S.A." />
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn" type="button" data-prev>Voltar</button>
+            <div class="right">
+              <button class="btn primary" type="submit">Avançar</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section hidden class="panes" tabindex="0" role="tabpanel" id="pane-3" aria-labelledby="tab-3">
+        <form id="form-3" novalidate>
+          <div class="grid">
+            <div class="col-6">
+              <div class="field">
+                <label for="natureza">Natureza da operação</label>
+                <select id="natureza" required>
+                  <option value="">Selecione…</option>
+                  <option value="venda">Venda de bem</option>
+                  <option value="servico">Prestação de serviço</option>
+                  <option value="licenciamento">Licenciamento/cessão</option>
+                  <option value="locacao">Locação</option>
+                  <option value="outros">Outros fornecimentos onerosos</option>
+                </select>
+                <div class="help">“Operação onerosa” = qualquer fornecimento com contraprestação (compra e venda, locação, cessão, etc.). :contentReference[oaicite:19]{index=19}</div>
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="field">
+                <label class="switch" for="exportacao">
+                  <input id="exportacao" type="checkbox" />
+                  <span>Exportação (imune)</span>
+                </label>
+                <div class="help">Exportações de bens/serviços são imunes a IBS/CBS (incidência zero no débito). :contentReference[oaicite:20]{index=20}</div>
+              </div>
+            </div>
+
+            <div class="col-6" id="destinoWrap">
+              <div class="field">
+                <label for="ufDestino">UF de destino</label>
+                <select id="ufDestino" required>
+                  <option value="">Selecione UF…</option>
+                  <option>AC</option><option>AL</option><option>AM</option><option>AP</option>
+                  <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+                  <option>GO</option><option>MA</option><option>MG</option><option>MS</option>
+                  <option>MT</option><option>PA</option><option>PB</option><option>PE</option>
+                  <option>PI</option><option>PR</option><option>RJ</option><option>RN</option>
+                  <option>RO</option><option>RR</option><option>RS</option><option>SC</option>
+                  <option>SE</option><option>SP</option><option>TO</option>
+                </select>
+                <div class="help">O IBS é devido ao destino (UF + Município); selecione primeiro a UF. :contentReference[oaicite:21]{index=21}</div>
+              </div>
+            </div>
+
+            <div class="col-6" id="munDestinoWrap">
+              <div class="field">
+                <label for="munDestino">Município de destino</label>
+                <input type="text" id="munDestino" placeholder="Digite o município…" required />
+                <div class="help">Usado para somar a **alíquota municipal** do IBS. :contentReference[oaicite:22]{index=22}</div>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="field">
+                <label for="momento">Momento do fato gerador</label>
+                <select id="momento" required>
+                  <option value="">Selecione…</option>
+                  <option value="pagamento">Pagamento antecipado/parcial</option>
+                  <option value="fornecimento">No fornecimento/término do serviço</option>
+                  <option value="continuada">Execução continuada (água, energia, telecom etc.)</option>
+                </select>
+                <div class="help">A lei define o momento de ocorrência (pagamento/fornecimento/serviço continuado), influenciando a apuração do período. :contentReference[oaicite:23]{index=23}</div>
+              </div>
+            </div>
+
+            <div class="col-12 alert">
+              <strong>Destino primeiro:</strong> o app só habilitará alíquotas do IBS após informar UF/Município do **destino** (regra do destino). :contentReference[oaicite:24]{index=24}
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn" type="button" data-prev>Voltar</button>
+            <div class="right">
+              <button class="btn primary" type="submit">Avançar</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section hidden class="panes" tabindex="0" role="tabpanel" id="pane-4" aria-labelledby="tab-4">
+        <form id="form-4" novalidate>
+          <div class="grid">
+            <div class="col-12">
+              <div class="row">
+                <div class="field">
+                  <label for="descricaoItem" class="sr-only">Descrição do item</label>
+                  <input type="text" id="descricaoItem" placeholder="Descrição do item/serviço" />
+                </div>
+                <div class="field">
+                  <label for="tipoItem" class="sr-only">Tipo</label>
+                  <select id="tipoItem">
+                    <option value="bem">Bem</option>
+                    <option value="servico">Serviço</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="valorItem" class="sr-only">Valor</label>
+                  <input type="number" id="valorItem" step="0.01" placeholder="Valor (R$)" />
+                </div>
+                <div class="field">
+                  <label for="descIncond" class="sr-only">Desconto incondicional</label>
+                  <input type="number" id="descIncond" step="0.01" placeholder="Desconto incond. (R$)" />
+                </div>
+                <button class="btn icon" type="button" id="btnAddItem"><span aria-hidden="true">➕</span> Incluir</button>
+              </div>
+              <div class="help">Descontos **incondicionais** reduzem a base (quando constarem no documento fiscal). :contentReference[oaicite:25]{index=25}</div>
+            </div>
+
+            <div class="col-12">
+              <div class="table-scroll" aria-live="polite" aria-label="Itens adicionados">
+                <table id="tblItens">
+                  <thead>
+                    <tr>
+                      <th>Descrição</th>
+                      <th>Tipo</th>
+                      <th class="text-right">Valor (R$)</th>
+                      <th class="text-right">Desc. incond. (R$)</th>
+                      <th class="text-right">Base do item (R$)</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <div class="chips" id="sumarioBase"></div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn" type="button" data-prev>Voltar</button>
+            <div class="right">
+              <button class="btn primary" type="submit">Avançar</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section hidden class="panes" tabindex="0" role="tabpanel" id="pane-5" aria-labelledby="tab-5">
+        <form id="form-5" novalidate>
+          <div class="grid">
+            <div class="col-6">
+              <div class="field">
+                <label class="switch" for="zfm">
+                  <input id="zfm" type="checkbox" />
+                  <span>Zona Franca de Manaus / Áreas incentivadas</span>
+                </label>
+                <div class="help">Tratamento diferenciado quando aplicável. (O usuário define manualmente reduções/isenções de acordo com a operação.) :contentReference[oaicite:26]{index=26}</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="field">
+                <label for="reducao">Redução/Isenção aplicável</label>
+                <select id="reducao">
+                  <option value="0">Sem redução</option>
+                  <option value="50">Redução de 50%</option>
+                  <option value="100">Isenção/Redução de 100%</option>
+                </select>
+                <div class="help">Exceções reduzem a base tributável do débito desse fornecimento. Use com critério. :contentReference[oaicite:27]{index=27}</div>
+              </div>
+            </div>
+
+            <div class="col-12 alert warn">
+              <strong>Boas práticas:</strong> exceções elevam alíquota padrão e a complexidade do sistema; prefira mecanismos focalizados quando a política pública assim determinar. :contentReference[oaicite:28]{index=28}
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn" type="button" data-prev>Voltar</button>
+            <div class="right">
+              <button class="btn primary" type="submit">Avançar</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section hidden class="panes" tabindex="0" role="tabpanel" id="pane-6" aria-labelledby="tab-6">
+        <form id="form-6" novalidate>
+          <div class="grid">
+            <div class="col-12">
+              <div class="alert">
+                <strong>Informe as alíquotas</strong> vigentes para **esta operação** (definidas pelos entes). IBS = UF destino + Município destino. CBS = União. :contentReference[oaicite:29]{index=29}
+              </div>
+            </div>
+
+            <div class="col-4">
+              <div class="field">
+                <label for="aliqIbsUF">IBS — alíquota estadual (UF destino) %</label>
+                <input type="number" id="aliqIbsUF" step="0.01" min="0" placeholder="Ex.: 14" required />
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="field">
+                <label for="aliqIbsMun">IBS — alíquota municipal (destino) %</label>
+                <input type="number" id="aliqIbsMun" step="0.01" min="0" placeholder="Ex.: 2" required />
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="field">
+                <label for="aliqCbs">CBS — alíquota federal %</label>
+                <input type="number" id="aliqCbs" step="0.01" min="0" placeholder="Ex.: 9" required />
+              </div>
+            </div>
+
+            <div class="col-6">
+              <div class="field">
+                <label for="creditoAnterior">Créditos recuperáveis no período (R$)</label>
+                <input type="number" id="creditoAnterior" step="0.01" min="0" value="0" />
+                <div class="help">Créditos de aquisições (não-cumulatividade). Informe o total a compensar nesta apuração. :contentReference[oaicite:30]{index=30}</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="field">
+                <label for="saldoCredor">Saldo credor anterior (R$)</label>
+                <input type="number" id="saldoCredor" step="0.01" min="0" value="0" />
+                <div class="help">Se houver saldo anterior (não ressarcido) a ser usado na compensação. :contentReference[oaicite:31]{index=31}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn" type="button" data-prev>Voltar</button>
+            <div class="right">
+              <button class="btn primary" type="submit">Calcular</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section hidden class="panes" tabindex="0" role="tabpanel" id="pane-7" aria-labelledby="tab-7">
+        <div class="grid">
+          <div class="col-12">
+            <div class="chips" id="chipsResumo"></div>
+          </div>
+
+          <div class="col-12">
+            <div class="cards" id="cards"></div>
+          </div>
+
+          <div class="col-12">
+            <div class="alert ok">
+              <strong>Não-cumulatividade aplicada:</strong> o débito IBS/CBS efetivo considera reduções/isenções e compensa créditos e saldos. Para exportações, o débito é zero (mantidos créditos conforme legislação). :contentReference[oaicite:32]{index=32}
+            </div>
+          </div>
+
+          <div class="col-12">
+            <details>
+              <summary>Detalhamento numérico</summary>
+              <pre id="debug" class="mono" style="white-space:pre-wrap"></pre>
+            </details>
+          </div>
+
+          <div class="col-12">
+            <div class="actions">
+              <button class="btn" type="button" data-prev>Voltar</button>
+              <div class="right">
+                <button class="btn icon" type="button" id="btnNovo"><span aria-hidden="true">🧹</span> Novo cálculo</button>
+                <button class="btn primary icon" type="button" id="btnExport2"><span aria-hidden="true">⬇️</span> Exportar (.json)</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12">
+            <footer>
+              <p>Este simulador não substitui a legislação. Use as alíquotas vigentes do ente de destino e as regras específicas aplicáveis ao seu caso.</p>
+            </footer>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <input class="sr-only" type="file" id="filePicker" accept="application/json" />
+
+  <script>
+    // Estado da aplicação
+    const state = {
+      periodo: { ano: 2026, transicao: false },
+      contribuinte: { regime: "", optSimplesRegular: false, cnpj: "", razao: "" },
+      operacao: { natureza: "", exportacao: false, ufDestino: "", munDestino: "", momento: "" },
+      itens: [],
+      regimes: { zfm: false, reducao: 0 },
+      aliquotas: { ibsUF: 0, ibsMun: 0, cbs: 0 },
+      creditos: { creditoAnterior: 0, saldoCredor: 0 },
+      resultado: null
+    };
+
+    // Acesso rápido ao DOM
+    const $ = (sel, el=document) => el.querySelector(sel);
+    const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
+
+    // Tab navegação
+    const tabs = $$(".step");
+    const panes = $$(".panes");
+    let current = 0;
+    function go(i){
+      if(i<0 || i>=panes.length) return;
+      panes[current].hidden = true;
+      tabs[current].setAttribute("aria-selected","false");
+      tabs[current].removeAttribute("aria-current");
+      tabs[current].classList.toggle("done", true);
+
+      current = i;
+      panes[current].hidden = false;
+      panes[current].focus({preventScroll:true});
+      tabs[current].setAttribute("aria-selected","true");
+      tabs[current].setAttribute("aria-current","step");
+      document.getElementById(`form-${current+1}`)?.querySelector("input,select,textarea")?.focus({preventScroll:true});
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+    tabs.forEach((b, i)=> b.addEventListener("click", ()=> go(i)));
+
+    // Forms submit handlers
+    $("#form-1").addEventListener("submit", (e)=>{
+      e.preventDefault();
+      const ano = +$("#ano").value;
+      if(!ano || ano<2024){ alert("Informe um ano válido (>=2024)."); return;}
+      state.periodo.ano = ano;
+      state.periodo.transicao = $("#modoTransicao").checked;
+      go(1);
+    });
+
+    $("#form-2").addEventListener("submit", (e)=>{
+      e.preventDefault();
+      const regime = $("#regime").value;
+      if(!regime){ alert("Selecione o regime do contribuinte."); return;}
+      state.contribuinte.regime = regime;
+      state.contribuinte.optSimplesRegular = $("#optSimplesRegular").checked;
+      state.contribuinte.cnpj = $("#cnpj").value.trim();
+      state.contribuinte.razao = $("#razao").value.trim();
+      go(2);
+    });
+
+    $("#form-3").addEventListener("submit", (e)=>{
+      e.preventDefault();
+      const natureza = $("#natureza").value;
+      if(!natureza){ alert("Selecione a natureza da operação."); return;}
+      state.operacao.natureza = natureza;
+      state.operacao.exportacao = $("#exportacao").checked;
+
+      if(!state.operacao.exportacao){
+        const uf = $("#ufDestino").value;
+        const mun = $("#munDestino").value.trim();
+        if(!uf || !mun){ alert("Informe UF e Município de destino."); return;}
+        state.operacao.ufDestino = uf;
+        state.operacao.munDestino = mun;
+      }else{
+        state.operacao.ufDestino = "";
+        state.operacao.munDestino = "";
+      }
+
+      const momento = $("#momento").value;
+      if(!momento){ alert("Selecione o momento do fato gerador."); return;}
+      state.operacao.momento = momento;
+
+      go(3);
+      refreshBaseSummary();
+    });
+
+    $("#form-4").addEventListener("submit", (e)=>{
+      e.preventDefault();
+      if(state.itens.length===0){ alert("Inclua pelo menos um item/serviço com valor positivo."); return;}
+      go(4);
+    });
+
+    $("#form-5").addEventListener("submit", (e)=>{
+      e.preventDefault();
+      state.regimes.zfm = $("#zfm").checked;
+      state.regimes.reducao = +$("#reducao").value || 0;
+      go(5);
+    });
+
+    $("#form-6").addEventListener("submit", (e)=>{
+      e.preventDefault();
+      const u = +$("#aliqIbsUF").value;
+      const m = +$("#aliqIbsMun").value;
+      const c = +$("#aliqCbs").value;
+      if([u,m,c].some(v => isNaN(v) || v<0)){ alert("Informe alíquotas válidas (números >= 0)."); return;}
+      if(!state.operacao.exportacao && (!state.operacao.ufDestino || !state.operacao.munDestino)){
+        alert("Antes de calcular, informe destino (UF/Município) na etapa Operação.");
+        return;
+      }
+      state.aliquotas.ibsUF = u; state.aliquotas.ibsMun = m; state.aliquotas.cbs = c;
+      state.creditos.creditoAnterior = +$("#creditoAnterior").value || 0;
+      state.creditos.saldoCredor = +$("#saldoCredor").value || 0;
+
+      calcular();
+      go(6);
+      renderResultado();
+    });
+
+    // Botões de navegação "Voltar"
+    $$("[data-prev]").forEach(b => b.addEventListener("click", ()=> go(current-1)));
+
+    // Regra condicional Simples
+    $("#regime").addEventListener("change", e=>{
+      $("#optSimplesWrap").hidden = (e.target.value!=="simples");
+    });
+
+    // Exibição de destino só para operações não exportação
+    $("#exportacao").addEventListener("change", e=>{
+      $("#destinoWrap").hidden = e.target.checked;
+      $("#munDestinoWrap").hidden = e.target.checked;
+    });
+
+    // Inclusão de itens
+    $("#btnAddItem").addEventListener("click", addItem);
+    function addItem(){
+      const desc = $("#descricaoItem").value.trim() || "(sem descrição)";
+      const tipo = $("#tipoItem").value;
+      let valor = +$("#valorItem").value || 0;
+      let descInc = +$("#descIncond").value || 0;
+      if(valor <= 0){ alert("Informe um valor positivo para o item."); return;}
+      if(descInc < 0){ alert("Desconto incondicional não pode ser negativo."); return;}
+      if(descInc > valor){ alert("Desconto incondicional não pode exceder o valor do item."); return;}
+
+      const base = Math.max(0, valor - descInc);
+      state.itens.push({desc, tipo, valor, descInc, base});
+      $("#descricaoItem").value = ""; $("#valorItem").value = ""; $("#descIncond").value = "";
+      renderItens();
+      refreshBaseSummary();
+    }
+    function renderItens(){
+      const tbody = $("#tblItens tbody");
+      tbody.innerHTML = "";
+      state.itens.forEach((it, idx)=>{
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${escapeHtml(it.desc)}</td>
+          <td>${it.tipo}</td>
+          <td class="text-right mono">${fmt(it.valor)}</td>
+          <td class="text-right mono">${fmt(it.descInc)}</td>
+          <td class="text-right mono">${fmt(it.base)}</td>
+          <td class="text-right"><button class="btn" type="button" data-remove="${idx}">Remover</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      $$('[data-remove]').forEach(b=>{
+        b.addEventListener("click", ()=>{
+          const i = +b.getAttribute("data-remove");
+          state.itens.splice(i,1);
+          renderItens(); refreshBaseSummary();
+        });
+      });
+    }
+    function refreshBaseSummary(){
+      const totalBruto = sum(state.itens.map(i=>i.valor));
+      const totalDesc = sum(state.itens.map(i=>i.descInc));
+      const totalBase = sum(state.itens.map(i=>i.base));
+      const chips = $("#sumarioBase");
+      chips.innerHTML = `
+        <span class="chip"><strong>Total bruto</strong> ${fmt(totalBruto)}</span>
+        <span class="chip"><strong>Descontos incond.</strong> ${fmt(totalDesc)}</span>
+        <span class="chip" data-variant="good"><strong>Base (itens)</strong> ${fmt(totalBase)}</span>
+      `;
+    }
+
+    // Cálculo principal
+    function calcular(){
+      const baseItens = sum(state.itens.map(i=>i.base));
+      const exporta = state.operacao.exportacao;
+      const reducaoPct = state.regimes.reducao || 0;
+
+      // Base após exceções
+      const baseExcecao = baseItens * (1 - reducaoPct/100);
+      const baseTributavel = exporta ? 0 : baseExcecao; // exportação imune
+
+      const aliqIbsTotal = (state.aliquotas.ibsUF + state.aliquotas.ibsMun)/100;
+      const aliqCbs = state.aliquotas.cbs/100;
+
+      const debIbs = baseTributavel * aliqIbsTotal;
+      const debCbs = baseTributavel * aliqCbs;
+      const debTotal = debIbs + debCbs;
+
+      // Créditos/saldos
+      const creditos = Math.max(0, state.creditsOk ? state.creditsOk : (state.creditos.creditoAnterior + state.creditos.saldoCredor));
+      const debitoLiquido = Math.max(0, debTotal - creditos);
+      const saldoFinal = Math.max(0, creditos - debTotal);
+
+      state.resultado = {
+        baseItens, baseExcecao, baseTributavel,
+        debIbs, debCbs, debTotal,
+        creditos, debitoLiquido, saldoFinal,
+        aliqIbsTotal, aliqCbs,
+      };
+    }
+
+    // Renderização do resultado
+    function renderResultado(){
+      const r = state.resultado;
+      if(!r) return;
+
+      // Chips-resumo
+      $("#chipsResumo").innerHTML = `
+        <span class="chip"><strong>Ano:</strong> ${state.periodo.ano}</span>
+        <span class="chip"><strong>Regime:</strong> ${state.contribuinte.regime}${state.contribuinte.regime==="simples" && state.contribuinte.optSimplesRegular ? " (apuração regular)" : ""}</span>
+        ${state.operacao.exportacao ? `<span class="chip" data-variant="good">Exportação (imune)</span>` :
+        `<span class="chip"><strong>Destino:</strong> ${state.operacao.munDestino}/${state.operacao.ufDestino}</span>`}
+        <span class="chip"><strong>Momento:</strong> ${state.operacao.momento}</span>
+        ${state.regimes.reducao ? `<span class="chip" data-variant="warn">Redução: ${state.regimes.reducao}%</span>` : ``}
+      `;
+
+      // Cards
+      const cards = $("#cards");
+      cards.innerHTML = `
+        <div class="card">
+          <h4>Base dos Itens</h4>
+          <div class="value">${fmt(r.baseItens)}</div>
+          <div class="note">Após descontos incondicionais</div>
+        </div>
+        <div class="card">
+          <h4>Base Tributável</h4>
+          <div class="value">${fmt(r.baseTributavel)}</div>
+          <div class="note">${state.operacao.exportacao ? "Exportação: imune" : `Após reduções/isenções (${state.regimes.reducao}%)`}</div>
+        </div>
+        <div class="card">
+          <h4>IBS devido (débito)</h4>
+          <div class="value">${fmt(r.debIbs)}</div>
+          <div class="note">Alíquota IBS: ${(r.aliqIbsTotal*100).toFixed(2)}% (UF + Município)</div>
+        </div>
+        <div class="card">
+          <h4>CBS devida (débito)</h4>
+          <div class="value">${fmt(r.debCbs)}</div>
+          <div class="note">Alíquota CBS: ${(r.aliqCbs*100).toFixed(2)}%</div>
+        </div>
+        <div class="card">
+          <h4>Débito Total (IBS+CBS)</h4>
+          <div class="value">${fmt(r.debTotal)}</div>
+          <div class="note">Antes da compensação de créditos</div>
+        </div>
+        <div class="card">
+          <h4>Créditos Compensados</h4>
+          <div class="value">${fmt(r.creditos)}</div>
+          <div class="note">Não-cumulatividade</div>
+        </div>
+        <div class="card">
+          <h4>Débito Líquido</h4>
+          <div class="value">${fmt(r.debitoLiquido)}</div>
+          <div class="note">Após créditos</div>
+        </div>
+        <div class="card">
+          <h4>Saldo Credor</h4>
+          <div class="value">${fmt(r.saldoFinal)}</div>
+          <div class="note">Se créditos > débito</div>
+        </div>
+      `;
+
+      // Debug
+      $("#debug").textContent = JSON.stringify({ state }, null, 2);
+    }
+
+    // Helpers
+    function sum(arr){ return arr.reduce((a,b)=>a+(+b||0),0) }
+    function fmt(v){ return (isNaN(v) ? 0 : v).toLocaleString('pt-BR', {style:"currency", currency:"BRL"}) }
+    function escapeHtml(str){return str.replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
+
+    // Exportar/Salvar/Carregar
+    function download(name, data){
+      const blob = new Blob([data], {type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = name;
+      document.body.appendChild(a); a.click();
+      setTimeout(()=>{ URL.revokeObjectURL(url); a.remove() }, 100);
+    }
+    $("#btnExport").addEventListener("click", exportar);
+    $("#btnExport2").addEventListener("click", exportar);
+    function exportar(){
+      const payload = { version:1, generated:new Date().toISOString(), ...state };
+      download(`simulador-ibs_cbs-${Date.now()}.json`, JSON.stringify(payload, null, 2));
+    }
+
+    $("#btnSave").addEventListener("click", ()=>{
+      localStorage.setItem("sim-ibs-cbs", JSON.stringify(state));
+      alert("Simulação salva no navegador.");
+    });
+    $("#btnLoad").addEventListener("click", ()=>{
+      const saved = localStorage.getItem("sim-ibs-cbs");
+      if(saved){
+        Object.assign(state, JSON.parse(saved));
+        hydrateUI();
+        alert("Simulação carregada do navegador.");
+      }else{
+        $("#filePicker").click();
+      }
+    });
+    $("#filePicker").addEventListener("change", (e)=>{
+      const f = e.target.files[0];
+      if(!f) return;
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        try{
+          const data = JSON.parse(reader.result);
+          Object.assign(state, data);
+          hydrateUI();
+          alert("Arquivo importado com sucesso.");
+        }catch(err){ alert("Arquivo inválido."); }
+      };
+      reader.readAsText(f);
+    });
+
+    function hydrateUI(){
+      // Preenche campos conforme estado
+      $("#ano").value = state.periodo.ano;
+      $("#modoTransicao").checked = !!state.periodo.transicao;
+
+      $("#regime").value = state.contribuinte.regime || "";
+      $("#optSimplesWrap").hidden = (state.contribuinte.regime!=="simples");
+      $("#optSimplesRegular").checked = !!state.contribuinte.optSimplesRegular;
+      $("#cnpj").value = state.contribuinte.cnpj || "";
+      $("#razao").value = state.contribuinte.razao || "";
+
+      $("#natureza").value = state.operacao.natureza || "";
+      $("#exportacao").checked = !!state.operacao.exportacao;
+      $("#destinoWrap").hidden = !!state.operacao.exportacao;
+      $("#munDestinoWrap").hidden = !!state.operacao.exportacao;
+      $("#ufDestino").value = state.operacao.ufDestino || "";
+      $("#munDestino").value = state.operacao.munDestino || "";
+      $("#momento").value = state.operacao.momento || "";
+
+      renderItens();
+      refreshBaseSummary();
+
+      $("#zfm").checked = !!state.regimes.zfm;
+      $("#reducao").value = state.regimes.reducao || 0;
+
+      $("#aliqIbsUF").value = state.aliquotas.ibsUF || "";
+      $("#aliqIbsMun").value = state.aliquotas.ibsMun || "";
+      $("#aliqCbs").value = state.aliquotas.cbs || "";
+      $("#creditoAnterior").value = state.creditos.creditoAnterior || 0;
+      $("#saldoCredor").value = state.creditos.saldoCredor || 0;
+
+      if(state.resultado){ renderResultado() }
+    }
+
+    // Acessibilidade / atalhos
+    document.addEventListener("keydown", (e)=>{
+      const mod = (e.ctrlKey || e.metaKey);
+      if(mod && e.key.toLowerCase()==="s"){ e.preventDefault(); $("#btnSave").click(); }
+      if(mod && e.key.toLowerCase()==="o"){ e.preventDefault(); $("#btnLoad").click(); }
+      if(e.key==="ArrowRight"){ go(Math.min(panes.length-1, current+1)) }
+      if(e.key==="ArrowLeft"){ go(Math.max(0, current-1)) }
+    });
+
+    // Botão "Novo cálculo"
+    $("#btnNovo")?.addEventListener("click", ()=>{
+      Object.assign(state, {
+        periodo: { ano: 2026, transicao: false },
+        contribuinte: { regime: "", optSimplesRegular: false, cnpj:"", razao:"" },
+        operacao: { natureza:"", exportacao:false, ufDestino:"", munDestino:"", momento:"" },
+        itens: [], regimes: { zfm:false, reducao:0 },
+        aliquotas: { ibsUF:0, ibsMun:0, cbs:0 },
+        creditos: { creditoAnterior:0, saldoCredor:0 },
+        resultado: null
+      });
+      hydrateUI();
+      go(0);
+    });
+
+    // Inicializa
+    hydrateUI();
+  </script>
+</body>
+</html>

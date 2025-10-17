@@ -1,0 +1,104 @@
+                <section id="cat-resultados" class="category">
+      <div class="category__header">
+        <h2 class="category__title">Apuração &amp; Resultados</h2>
+        <p class="category__lead">Analise KPIs, compare tributos e acesse materiais de apoio para interpretar o cenário.</p>
+      </div>
+      <div class="category__body space-y-6">
+        <section id="cardsPadrao" class="grid grid-cols-12 gap-6 hidden">
+          <div id="cardAtual" class="card overflow-x-auto col-span-12 lg:col-span-6">
+            <h2 id="titleAtual" class="font-medium mb-3">Modelo atual</h2>
+            <table class="min-w-full text-sm tbl">
+              <colgroup>
+                <col class="col-nome">
+                <col class="col-base">
+                <col class="col-aliq">
+                <col class="col-valor">
+              </colgroup>
+              <thead><tr><th>Tributo</th><th class="text-right">Base</th><th class="text-right">Alíquota</th><th class="text-right">Valor</th></tr></thead>
+              <tbody id="tAtual"><tr>
+                <td class="text-slate-600">PIS</td>
+                <td class="text-right">R$&nbsp;50.000,00</td>
+                <td class="text-right">1,65%</td>
+                <td class="text-right">R$&nbsp;825,00</td>
+              </tr><tr>
+                <td class="text-slate-600">COFINS</td>
+                <td class="text-right">R$&nbsp;50.000,00</td>
+                <td class="text-right">7,60%</td>
+                <td class="text-right">R$&nbsp;3.800,00</td>
+              </tr><tr>
+                <td class="text-slate-600">ISS</td>
+                <td class="text-right">R$&nbsp;100.000,00</td>
+                <td class="text-right">5,00%</td>
+                <td class="text-right">R$&nbsp;5.000,00</td>
+              </tr><tr>
+                <td class="text-slate-600">IRPJ</td>
+                <td class="text-right">R$&nbsp;20.000,00</td>
+                <td class="text-right">15,00%</td>
+                <td class="text-right">R$&nbsp;3.000,00</td>
+              </tr><tr>
+                <td class="text-slate-600">CSLL</td>
+                <td class="text-right">R$&nbsp;20.000,00</td>
+                <td class="text-right">9,00%</td>
+                <td class="text-right">R$&nbsp;1.800,00</td>
+              </tr></tbody>
+              <tfoot>
+                <tr><td colspan="3">Total (Atual)</td><td id="totAtual" class="text-right">R$&nbsp;14.425,00</td></tr>
+                <tr><td colspan="3">Alíquota efetiva</td><td id="efetAtual" class="text-right">14,42%</td></tr>
+              </tfoot>
+            </table>
+            <div id="listAtual" class="mobile-list hidden"></div>
+          </div>
+          <div id="cardNovo" class="card overflow-x-auto col-span-12 lg:col-span-6">
+            <h2 class="font-medium mb-3" id="tituloNovo">Cenário (CBS/IBS)</h2>
+            <table class="min-w-full text-sm tbl">
+              <colgroup>
+                <col class="col-nome">
+                <col class="col-base">
+                <col class="col-aliq">
+                <col class="col-valor">
+              </colgroup>
+              <thead><tr><th>Tributo</th><th class="text-right">Base</th><th class="text-right">Alíquota</th><th class="text-right">Valor</th></tr></thead>
+              <tbody id="tNovo"><tr>
+                <td class="text-slate-600">CBS (0,9%) – teste</td>
+                <td class="text-right">R$&nbsp;100.000,00</td>
+                <td class="text-right">0,90%</td>
+                <td class="text-right">R$&nbsp;900,00</td>
+              </tr><tr>
+                <td class="text-slate-600">IBS (0,1%) – teste</td>
+                <td class="text-right">R$&nbsp;100.000,00</td>
+                <td class="text-right">0,10%</td>
+                <td class="text-right">R$&nbsp;100,00</td>
+              </tr><tr>
+                <td class="text-slate-600">Compensação CBS/IBS × PIS/COFINS</td>
+                <td class="text-right">—</td>
+                <td class="text-right">—</td>
+                <td class="text-right">-R$&nbsp;1.000,00</td>
+              </tr><tr>
+                <td class="text-slate-600">PIS+COFINS após compensação</td>
+                <td class="text-right">R$&nbsp;50.000,00</td>
+                <td class="text-right">7,25%</td>
+                <td class="text-right">R$&nbsp;3.625,00</td>
+              </tr><tr>
+                <td class="text-slate-600">ISS</td>
+                <td class="text-right">R$&nbsp;100.000,00</td>
+                <td class="text-right">5,00%</td>
+                <td class="text-right">R$&nbsp;5.000,00</td>
+              </tr><tr>
+                <td class="text-slate-600">IRPJ</td>
+                <td class="text-right">R$&nbsp;20.000,00</td>
+                <td class="text-right">15,00%</td>
+                <td class="text-right">R$&nbsp;3.000,00</td>
+              </tr><tr>
+                <td class="text-slate-600">CSLL</td>
+                <td class="text-right">R$&nbsp;20.000,00</td>
+                <td class="text-right">9,00%</td>
+                <td class="text-right">R$&nbsp;1.800,00</td>
+              </tr></tbody>
+              <tfoot>
+                <tr><td id="rotTotNovo" colspan="3">Total (Piloto 2026)</td><td id="totNovo" class="text-right">R$&nbsp;14.425,00</td></tr>
+                <tr><td colspan="3">Alíquota efetiva</td><td id="efetNovo" class="text-right">14,42%</td></tr>
+              </tfoot>
+            </table>
+            <div id="listNovo" class="mobile-list hidden"></div>
+          </div>
+        </section>

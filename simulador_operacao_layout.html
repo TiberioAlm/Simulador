@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>RTB · Simulador IBS/CBS</title>
+<style>
+  :root{
+    --brand:#155EEF; --brand-ink:#0B3FB3;
+    --bg:#0B0D11; --panel:#12161F; --muted:#1A2030; --ink:#E8ECF6; --ink-2:#B9C2D6;
+    --ok:#26A269; --warn:#F5A524; --error:#D14343; --focus:#8AA4FF; --chip:#20273A;
+    --card-radius:14px; --chip-radius:999px; --shadow:0 10px 30px rgba(0,0,0,.35)
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body.layout--sidebar{
+    margin:0; background:linear-gradient(180deg,#0a0d14 0%,#0b1120 100%);
+    color:var(--ink); font:14.5px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    display:grid; grid-template-columns:260px minmax(0,1fr); grid-template-rows:auto minmax(0,1fr)
+  }
+  /* Topbar */
+  .topbar{
+    grid-column:1/-1; grid-row:1; display:flex; align-items:center; gap:14px;
+    padding:14px 18px; border-bottom:1px solid #1c2335; background:rgba(12,15,25,.7); backdrop-filter: blur(8px);
+    position:sticky; top:0; z-index:50
+  }
+  .brand{display:flex; align-items:center; gap:10px; font-weight:700}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--brand); box-shadow:0 0 24px var(--brand)}
+  .brand small{color:var(--ink-2); font-weight:500}
+  .topbar .spacer{flex:1}
+  .chip{background:var(--chip); color:var(--ink-2); border:1px solid #2b3350; padding:6px 10px; border-radius:var(--chip-radius); display:inline-flex; gap:8px; align-items:center}
+  .chip input, .chip select{background:transparent; border:0; color:var(--ink); outline:none; min-width:110px}
+  .top-actions{display:flex; gap:10px}
+  .btn, button{border:0; border-radius:10px; padding:10px 12px; background:#1b2236; color:var(--ink); cursor:pointer}
+  .btn--primary{background:var(--brand); color:white}
+  .btn--ghost{background:transparent; border:1px solid #2b3350}
+  .btn[disabled]{opacity:.5; cursor:not-allowed}
+  /* Sidebar / Nav */
+  .sidebar{
+    grid-column:1; grid-row:2; border-right:1px solid #151b2a; padding:18px 8px; overflow:auto
+  }
+  .steps{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px}
+  .step{
+    display:flex; gap:10px; align-items:center; padding:10px 12px; border-radius:12px; cursor:pointer; color:var(--ink-2);
+    border:1px solid transparent
+  }
+  .step[aria-current="step"], .step:hover{background:var(--muted); color:var(--ink); border-color:#26304e}
+  .step .num{width:28px;height:28px;border-radius:50%; background:#1f2740; display:grid; place-items:center; font-weight:700; color:var(--ink)}
+  .step.done .num{background:var(--ok)}
+  .step .meta{display:flex; flex-direction:column; line-height:1.2}
+  .step .meta small{color:var(--ink-2)}
+  /* Main */
+  .main{
+    grid-column:2; grid-row:2; display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:16px; padding:18px
+  }
+  .panel{
+    background:radial-gradient(120% 140% at 0% 0%, rgba(33, 66, 140,.15), transparent 40%) , var(--panel);
+    border:1px solid #1a2134; border-radius:var(--card-radius); box-shadow:var(--shadow)
+  }
+  .card{padding:18px}
+  .card h2{margin:0 0 12px; font-size:18px}
+  .grid{display:grid; gap:12px}
+  .grid.cols-2{grid-template-columns:1fr 1fr}
+  .grid.cols-3{grid-template-columns:repeat(3,1fr)}
+  label{display:flex; gap:8px; flex-direction:column; color:var(--ink-2)}
+  input[type="text"], input[type="number"], input[type="month"], select, textarea{
+    background:#0f1422; border:1px solid #26304e; color:var(--ink); border-radius:10px; padding:10px 12px; outline:none
+  }
+  input:focus, select:focus, textarea:focus{border-color:var(--focus); box-shadow:0 0 0 3px rgba(138,164,255,.15)}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .help{color:var(--ink-2); font-size:13px}
+  .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#0e1524; border:1px solid #2b3350; padding:0 6px; border-radius:6px}
+  .toolbar{display:flex; justify-content:space-between; align-items:center; padding:12px 18px; border-top:1px solid #1b2236; background:linear-gradient(180deg,rgba(255,255,255,.02), transparent)}
+  .toolbar .left,.toolbar .right{display:flex; gap:8px; align-items:center}
+  .status-dot{width:8px;height:8px;border-radius:50%;background:var(--warn)}
+  /* Right rail (Ajuda/Resumo) */
+  .rail{display:flex; flex-direction:column; gap:16px}
+  .rail .section h3{margin:0 0 10px; font-size:15px}
+  .muted{color:var(--ink-2)}
+  .list{display:flex; flex-direction:column; gap:8px}
+  .pill{display:inline-flex; padding:6px 10px; border-radius:999px; background:#0f1524; border:1px solid #24304e; gap:8px}
+  .kpi{display:grid; grid-template-columns:1fr auto; align-items:center; gap:8px; padding:10px 12px; border-radius:12px; background:#0e1422; border:1px solid #23304e}
+  .kpi strong{font-size:16px}
+  .kpi.good strong{color:var(--ok)} .kpi.bad strong{color:var(--error)}
+  /* Table (Operações) */
+  table{width:100%; border-collapse:collapse}
+  th, td{padding:10px; border-bottom:1px solid #1b2236; text-align:left}
+  th{color:var(--ink-2); font-weight:600}
+  tr:hover td{background:#0f1524}
+  .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+  /* Tabs (alternative layout) */
+  body.layout--tabs{grid-template-columns:1fr; grid-template-rows:auto auto 1fr}
+  body.layout--tabs .sidebar{display:none}
+  .tabs{grid-row:2; display:flex; gap:8px; padding:0 18px 12px; border-bottom:1px solid #151b2a}
+  .tab{padding:10px 14px; border-radius:10px; color:var(--ink-2); border:1px solid transparent; cursor:pointer}
+  .tab[aria-selected="true"], .tab:hover{color:var(--ink); background:var(--muted); border-color:#26304e}
+  @media (max-width: 1080px){
+    .main{grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body class="layout--sidebar">
+  <!-- TOPBAR -->
+  <header class="topbar" role="banner">
+    <div class="brand" aria-label="RTB Simulador IBS/CBS">
+      <span class="dot" aria-hidden="true"></span>
+      RTB · Simulador <small>IBS/CBS</small>
+    </div>
+    <div class="chip" title="Competência">
+      <span>Competência</span>
+      <input id="competencia" type="month" aria-label="Competência" />
+    </div>
+    <div class="chip" title="Empresa">
+      <span>Empresa</span>
+      <input id="empresa_nome" type="text" placeholder="Razão Social" aria-label="Razão Social"/>
+    </div>
+    <div class="spacer"></div>
+    <div class="top-actions">
+      <button class="btn btn--ghost" id="tourBtn" title="Dicas rápidas (Shift+/)"><span class="kbd">Shift</span>+<span class="kbd">/</span> Ajuda</button>
+      <button class="btn btn--primary" id="salvarBtn" title="Salvar rascunho (Ctrl+S)">Salvar</button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR (etapas) -->
+  <aside class="sidebar" role="navigation" aria-label="Etapas do simulador">
+    <ol class="steps" id="stepsList">
+      <li class="step" data-step="1" tabindex="0"><span class="num">1</span><div class="meta"><strong>Cadastro</strong><small>Contribuinte e período</small></div></li>
+      <li class="step" data-step="2" tabindex="0"><span class="num">2</span><div class="meta"><strong>Operações</strong><small>Bens/Serviços & destino</small></div></li>
+      <li class="step" data-step="3" tabindex="0"><span class="num">3</span><div class="meta"><strong>Tratamentos</strong><small>Regimes & exceções</small></div></li>
+      <li class="step" data-step="4" tabindex="0"><span class="num">4</span><div class="meta"><strong>Créditos</strong><small>Não‑cumulatividade</small></div></li>
+      <li class="step" data-step="5" tabindex="0"><span class="num">5</span><div class="meta"><strong>Apuração</strong><small>Base, alíquotas, cálculo</small></div></li>
+      <li class="step" data-step="6" tabindex="0"><span class="num">6</span><div class="meta"><strong>Resultados</strong><small>Resumo e distribuição</small></div></li>
+      <li class="step" data-step="7" tabindex="0"><span class="num">7</span><div class="meta"><strong>Exportar</strong><small>Compartilhar/JSON</small></div></li>
+    </ol>
+  </aside>
+
+  <!-- (Layout alternativo por abas) -->
+  <nav class="tabs" hidden aria-label="Etapas (layout por abas)" id="tabsNav"></nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <!-- Conteúdo -->
+    <section id="content" class="panel card" role="region" aria-live="polite" aria-atomic="true">
+      <!-- STEP 1 -->
+      <div class="step-panel" data-step="1">
+        <h2>1) Cadastro do contribuinte</h2>
+        <div class="grid cols-2">
+          <label> CNPJ
+            <input id="cnpj" type="text" placeholder="00.000.000/0000-00" inputmode="numeric" />
+          </label>
+          <label> CNAE (principal)
+            <input id="cnae" type="text" placeholder="Ex.: 6201-5/01" />
+          </label>
+          <label> UF (destino principal)
+            <select id="uf">
+              <option value="">Selecione</option>
+              <option>AC</option><option>AL</option><option>AM</option><option>AP</option>
+              <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+              <option>GO</option><option>MA</option><option>MG</option><option>MS</option><option>MT</option>
+              <option>PA</option><option>PB</option><option>PE</option><option>PI</option><option>PR</option>
+              <option>RJ</option><option>RN</option><option>RO</option><option>RR</option><option>RS</option>
+              <option>SC</option><option>SE</option><option>SP</option><option>TO</option>
+            </select>
+          </label>
+          <label> Regime
+            <select id="regime">
+              <option value="regular">Regular (IBS/CBS)</option>
+              <option value="simples">Simples Nacional</option>
+              <option value="mei">MEI</option>
+            </select>
+          </label>
+        </div>
+        <p class="help">Ordem de preenchimento: <strong>Cadastro → Operações → Tratamentos → Créditos → Apuração → Resultados → Exportar</strong>. Navegue com <span class="kbd">Alt</span> + <span class="kbd">→</span> / <span class="kbd">←</span>.</p>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step-panel" data-step="2" hidden>
+        <h2>2) Operações do período</h2>
+        <div class="grid cols-3">
+          <label> Tipo de fornecimento
+            <select id="op_tipo">
+              <option value="bem">Bem material</option>
+              <option value="servico_fisico">Serviço prestado fisicamente</option>
+              <option value="imaterial">Bem/serviço imaterial (digital, licenças etc.)</option>
+            </select>
+          </label>
+          <label> Destinatário
+            <select id="op_destinatario">
+              <option value="b2b">B2B (contribuinte)</option>
+              <option value="b2c">B2C (consumidor final)</option>
+            </select>
+          </label>
+          <label> Local do destinatário (domicílio principal)
+            <input id="op_local" type="text" placeholder="Município/UF ou País (se exterior)" />
+          </label>
+
+          <label> Intermediação por plataforma digital?
+            <select id="op_plataforma">
+              <option value="nao">Não</option>
+              <option value="sim">Sim</option>
+            </select>
+          </label>
+          <label> Operação de exportação?
+            <select id="op_exporta">
+              <option value="nao">Não</option>
+              <option value="sim">Sim</option>
+            </select>
+          </label>
+          <label> Operação de importação?
+            <select id="op_importa">
+              <option value="nao">Não</option>
+              <option value="sim">Sim</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="panel card" style="margin-top:12px">
+          <h3 style="margin:0 0 10px">Composição do valor (por fora)</h3>
+          <div class="grid cols-3">
+            <label> Valor da operação (R$)
+              <input id="op_valor" type="number" step="0.01" min="0" placeholder="0,00"/>
+            </label>
+            <label> Frete/Seguro/Encargos (R$)
+              <input id="op_acrescimos" type="number" step="0.01" min="0" placeholder="0,00"/>
+            </label>
+            <label> Descontos incondicionais (R$)
+              <input id="op_desc" type="number" step="0.01" min="0" placeholder="0,00"/>
+            </label>
+          </div>
+          <div class="row" style="justify-content:flex-end">
+            <button class="btn btn--ghost" id="limparOp">Limpar</button>
+            <button class="btn btn--primary" id="adicionarOp">Adicionar operação</button>
+          </div>
+        </div>
+
+        <div class="panel card" style="margin-top:12px">
+          <h3 style="margin:0 0 10px">Operações lançadas</h3>
+          <div class="help">Base de cálculo = Valor + Acréscimos − Descontos (tributos “por fora”).</div>
+          <div style="overflow:auto">
+            <table id="tabelaOps" aria-label="Tabela de operações">
+              <thead>
+                <tr>
+                  <th>#</th><th>Tipo</th><th>Dest.</th><th>Local</th><th>Plataforma</th><th>Exporta</th><th>Importa</th>
+                  <th class="mono">Base (R$)</th><th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+              <tfoot>
+                <tr><th colspan="7" style="text-align:right">Base acumulada (R$):</th><th class="mono" id="baseAcumulada">0,00</th><th></th></tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step-panel" data-step="3" hidden>
+        <h2>3) Tratamentos / Regimes</h2>
+        <div class="grid cols-2">
+          <label> Regime específico
+            <select id="regime_especifico">
+              <option value="">Nenhum</option>
+              <option value="financeiro">Serviços financeiros</option>
+              <option value="combustiveis">Combustíveis</option>
+              <option value="energia">Energia/Utilidades (execução continuada)</option>
+            </select>
+          </label>
+          <label> Áreas/benefícios
+            <select id="beneficios">
+              <option value="">Nenhum</option>
+              <option value="zfm">Zona Franca de Manaus</option>
+              <option value="livros">Livros/Jornais (imunidade)</option>
+              <option value="cesta">Cesta básica (redução/isenção conforme LC)</option>
+            </select>
+          </label>
+          <label> Plataforma digital responsável (se aplicável)
+            <select id="plat_resp">
+              <option value="nao">Não</option>
+              <option value="substituto">Sim, substituta (fornecedor no exterior)</option>
+              <option value="solidaria">Sim, responsabilidade solidária (fornecedor BR sem DF-e)</option>
+            </select>
+          </label>
+          <label> Devolução (cashback) – consumidores de baixa renda?
+            <select id="cashback">
+              <option value="nao">Não</option>
+              <option value="geral">Devolução geral (LC)</option>
+              <option value="especifica">Devolução específica (LC)</option>
+            </select>
+          </label>
+        </div>
+        <p class="help">Regras como imunidades, reduções e devoluções seguem a LC aplicável. O sistema só exibirá campos quando o tratamento for pertinente.</p>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="step-panel" data-step="4" hidden>
+        <h2>4) Créditos (não‑cumulatividade)</h2>
+        <div class="grid cols-3">
+          <label> Créditos de insumos (R$)
+            <input id="cred_insumos" type="number" step="0.01" min="0" placeholder="0,00"/>
+          </label>
+          <label> Créditos de imobilizado (R$)
+            <input id="cred_imob" type="number" step="0.01" min="0" placeholder="0,00"/>
+          </label>
+          <label> Saldo credor anterior (R$)
+            <input id="cred_saldo_ant" type="number" step="0.01" min="0" placeholder="0,00"/>
+          </label>
+        </div>
+        <p class="help">Créditos vedados (uso/consumo pessoal de sócios/empregados) **não** entram na apuração.</p>
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="step-panel" data-step="5" hidden>
+        <h2>5) Apuração</h2>
+        <div class="panel card">
+          <h3 style="margin:0 0 10px">Alíquotas informadas pelo contribuinte</h3>
+          <div class="grid cols-3">
+            <label> Alíquota CBS (União) – %
+              <input id="aliq_cbs" type="number" step="0.01" min="0" placeholder="Ex.: 9.0"/>
+            </label>
+            <label> Alíquota IBS Estadual – %
+              <input id="aliq_ibs_est" type="number" step="0.01" min="0" placeholder="Ex.: 14.0"/>
+            </label>
+            <label> Alíquota IBS Municipal – %
+              <input id="aliq_ibs_mun" type="number" step="0.01" min="0" placeholder="Ex.: 2.0"/>
+            </label>
+          </div>
+          <div class="row" style="justify-content:flex-end">
+            <button class="btn btn--ghost" id="recalcular">Recalcular</button>
+            <button class="btn btn--primary" id="calcular">Calcular apuração</button>
+          </div>
+        </div>
+
+        <div class="panel card" style="margin-top:12px">
+          <h3 style="margin:0 0 10px">Detalhamento</h3>
+          <div class="grid cols-3">
+            <div class="kpi"><div>Base de cálculo acumulada</div><strong class="mono" id="kpi_base">0,00</strong></div>
+            <div class="kpi"><div>Total créditos</div><strong class="mono" id="kpi_creds">0,00</strong></div>
+            <div class="kpi"><div>Alíquota total (somada)</div><strong class="mono" id="kpi_alit">0,00%</strong></div>
+          </div>
+          <div class="grid cols-3" style="margin-top:10px">
+            <div class="kpi"><div>Débito CBS</div><strong class="mono" id="kpi_cbs">0,00</strong></div>
+            <div class="kpi"><div>Débito IBS (Est+Mun)</div><strong class="mono" id="kpi_ibs">0,00</strong></div>
+            <div class="kpi"><div>Saldo a pagar / credor</div><strong class="mono" id="kpi_saldo">0,00</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 6 -->
+      <div class="step-panel" data-step="6" hidden>
+        <h2>6) Resultados & distribuição</h2>
+        <div class="grid cols-2">
+          <div class="panel card">
+            <h3 style="margin:0 0 10px">Resumo do período</h3>
+            <div class="list">
+              <div class="kpi"><div>Base de cálculo (R$)</div><strong class="mono" id="r_base">0,00</strong></div>
+              <div class="kpi"><div>Débito CBS (R$)</div><strong class="mono" id="r_cbs">0,00</strong></div>
+              <div class="kpi"><div>Débito IBS – Estado (R$)</div><strong class="mono" id="r_ibs_est">0,00</strong></div>
+              <div class="kpi"><div>Débito IBS – Município (R$)</div><strong class="mono" id="r_ibs_mun">0,00</strong></div>
+              <div class="kpi"><div>Créditos totais (R$)</div><strong class="mono" id="r_creds">0,00</strong></div>
+              <div class="kpi"><div><strong>Saldo final</strong> (R$)</div><strong class="mono" id="r_saldo">0,00</strong></div>
+            </div>
+          </div>
+          <div class="panel card">
+            <h3 style="margin:0 0 10px">Observações</h3>
+            <ul class="muted">
+              <li>Tributos “por fora”: a base não inclui IBS/CBS.</li>
+              <li>Local da operação: destino (domicílio do destinatário).</li>
+              <li>Plataforma digital pode ser substituta/solidária, conforme caso.</li>
+              <li>Exportações imunes; importações tributadas.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 7 -->
+      <div class="step-panel" data-step="7" hidden>
+        <h2>7) Exportar / Compartilhar</h2>
+        <div class="grid cols-2">
+          <div class="panel card">
+            <h3 style="margin:0 0 10px">Baixar JSON do cenário</h3>
+            <p class="help">O arquivo contém cadastro, operações, parâmetros de alíquota e a apuração.</p>
+            <button class="btn btn--primary" id="exportar">Exportar JSON</button>
+          </div>
+          <div class="panel card">
+            <h3 style="margin:0 0 10px">Salvar no navegador</h3>
+            <div class="row">
+              <button class="btn" id="persistir">Salvar rascunho</button>
+              <button class="btn btn--ghost" id="limparTudo">Limpar tudo</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RAIL: Ajuda & Resumo -->
+    <aside class="rail">
+      <section class="panel card section" aria-live="polite">
+        <h3>Ajuda contextual</h3>
+        <div id="ajuda" class="muted">
+          Use <span class="kbd">Alt</span> + <span class="kbd">→</span>/<span class="kbd">←</span> para navegar. Campos aparecem conforme sua escolha (ex.: plataforma, exportação).
+        </div>
+      </section>
+      <section class="panel card section">
+        <h3>Resumo rápido</h3>
+        <div class="list" id="quick">
+          <div class="kpi"><div>Etapa</div><strong id="quick_step">1/7</strong></div>
+          <div class="kpi"><div>Base acumulada</div><strong class="mono" id="quick_base">0,00</strong></div>
+          <div class="kpi"><div>Créditos</div><strong class="mono" id="quick_creds">0,00</strong></div>
+        </div>
+      </section>
+      <section class="panel card section">
+        <h3>Atalhos</h3>
+        <div class="muted">
+          <div class="row"><span class="kbd">Alt</span>+<span class="kbd">→</span>/<span class="kbd">←</span> Próx./Anterior</div>
+          <div class="row"><span class="kbd">1…7</span> Ir à etapa</div>
+          <div class="row"><span class="kbd">Ctrl</span>+<span class="kbd">S</span> Salvar rascunho</div>
+          <div class="row"><span class="kbd">Shift</span>+<span class="kbd">/</span> Ajuda</div>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+<script>
+(function(){
+  const $$ = (sel,ctx=document)=>Array.from(ctx.querySelectorAll(sel));
+  const $  = (sel,ctx=document)=>ctx.querySelector(sel);
+
+  // State
+  const state = {
+    step: 1,
+    ops: [],
+    base: 0,
+    credits: {insumos:0, imob:0, saldo_ant:0},
+    aliq: {cbs:0, ibs_est:0, ibs_mun:0},
+    resultado: {cbs:0, ibs:0, ibs_est:0, ibs_mun:0, base:0, total:0, saldo:0}
+  };
+
+  // Elements
+  const stepsList = $('#stepsList');
+  const content   = $('#content');
+  const ajuda     = $('#ajuda');
+  const baseAcum  = $('#baseAcumulada');
+  const quickBase = $('#quick_base');
+  const quickCred = $('#quick_creds');
+  const quickStep = $('#quick_step');
+
+  // Accessibility helpers
+  function setStep(n){
+    state.step = n;
+    // Sidebar states
+    $$('.step', stepsList).forEach(li=>{
+      li.setAttribute('aria-current', +li.dataset.step===n ? 'step' : 'false');
+      if(+li.dataset.step < n) li.classList.add('done'); else li.classList.remove('done');
+    });
+    // Panels
+    $$('.step-panel', content).forEach(p=>p.hidden = +p.dataset.step!==n);
+    // Quick
+    quickStep.textContent = `${n}/7`;
+    // Context help
+    const helps = {
+      1: 'Informe CNPJ, CNAE, regime e competência. Este passo habilita os demais.',
+      2: 'Cadastre cada operação. Base = Valor + Acréscimos − Descontos. Local é o domicílio do destinatário.',
+      3: 'Selecione regimes específicos e benefícios quando houver. Plataformas digitais podem ser responsáveis em certos casos.',
+      4: 'Informe os créditos permitidos (insumos, imobilizado, saldo anterior). Uso pessoal não gera crédito.',
+      5: 'Defina as alíquotas (CBS, IBS estadual e municipal) e calcule.',
+      6: 'Confira o resumo, distribuição e saldo.',
+      7: 'Exporte o cenário ou salve localmente.'
+    };
+    ajuda.textContent = helps[n] || '';
+    // Focus first focusable
+    const focusable = $('input, select, button', $('.step-panel[data-step="'+n+'"]')) || null;
+    if(focusable) focusable.focus();
+  }
+
+  // Nav: sidebar clicks + keyboard
+  stepsList.addEventListener('click', e=>{
+    const li = e.target.closest('.step'); if(!li) return;
+    const s = +li.dataset.step; setStep(s);
+  });
+  stepsList.addEventListener('keydown', e=>{
+    if(e.key==='Enter' || e.key===' ') { e.preventDefault(); e.target.click(); }
+  });
+  window.addEventListener('keydown', e=>{
+    if(e.altKey && e.key==='ArrowRight'){ e.preventDefault(); setStep(Math.min(7, state.step+1)); }
+    if(e.altKey && e.key==='ArrowLeft' ){ e.preventDefault(); setStep(Math.max(1, state.step-1)); }
+    if(/^[1-7]$/.test(e.key)){ setStep(+e.key); }
+    if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s'){ e.preventDefault(); persist(); }
+    if(e.shiftKey && e.key==='/'){ e.preventDefault(); alert('Dicas rápidas:\n• Use Alt+→/← para navegar.\n• Campos aparecem conforme o tipo de operação.\n• Apuração em 5) considera alíquotas informadas.'); }
+  });
+
+  // Format money
+  const fmt = v => (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  const pct = v => `${(v||0).toFixed(2)}%`;
+
+  // Operações
+  const op = {
+    tipo:   $('#op_tipo'),
+    dest:   $('#op_destinatario'),
+    local:  $('#op_local'),
+    plat:   $('#op_plataforma'),
+    exp:    $('#op_exporta'),
+    imp:    $('#op_importa'),
+    valor:  $('#op_valor'),
+    acres:  $('#op_acrescimos'),
+    desc:   $('#op_desc'),
+    tabela: $('#tabelaOps').querySelector('tbody'),
+    baseAc: $('#baseAcumulada')
+  };
+  $('#adicionarOp').addEventListener('click', ()=>{
+    const v  = +op.valor.value||0, a=+op.acres.value||0, d=+op.desc.value||0;
+    const base = Math.max(0, v+a-d);
+    const row = {
+      id: Date.now(),
+      tipo: op.tipo.value, dest: op.dest.value, local: op.local.value.trim(),
+      plat: op.plat.value, exp: op.exp.value, imp: op.imp.value, base
+    };
+    state.ops.push(row);
+    renderOps();
+    // reset minimal fields
+    op.valor.value=''; op.acres.value=''; op.desc.value='';
+    updateBaseCreditsKpis();
+  });
+  $('#limparOp').addEventListener('click', ()=>{
+    op.valor.value=''; op.acres.value=''; op.desc.value='';
+  });
+  function renderOps(){
+    op.tabela.innerHTML = '';
+    state.base = 0;
+    state.ops.forEach((r,i)=>{
+      state.base += r.base;
+      const tr=document.createElement('tr');
+      tr.innerHTML = `
+        <td>${i+1}</td>
+        <td>${labelTipo(r.tipo)}</td>
+        <td>${r.dest.toUpperCase()}</td>
+        <td>${r.local||'-'}</td>
+        <td>${r.plat==='nao'?'Não':'Sim'}</td>
+        <td>${r.exp==='sim'?'Sim':'Não'}</td>
+        <td>${r.imp==='sim'?'Sim':'Não'}</td>
+        <td class="mono">${fmt(r.base)}</td>
+        <td><button class="btn btn--ghost" data-del="${r.id}">Excluir</button></td>
+      `;
+      op.tabela.appendChild(tr);
+    });
+    op.baseAc.textContent = fmt(state.base);
+    quickBase.textContent = fmt(state.base);
+  }
+  function labelTipo(v){
+    return v==='bem'?'Bem material': v==='servico_fisico'?'Serviço físico':'Imaterial/digital';
+  }
+  $('#tabelaOps').addEventListener('click', e=>{
+    const id = e.target?.dataset?.del; if(!id) return;
+    state.ops = state.ops.filter(r=> String(r.id)!==String(id));
+    renderOps(); updateBaseCreditsKpis();
+  });
+
+  // Tratamentos (somente condicionalidade visual neste esqueleto)
+  $('#op_exporta').addEventListener('change', e=>{
+    if(e.target.value==='sim') alert('Operação marcada como exportação: será tratada como imune na apuração.');
+  });
+  $('#op_plataforma').addEventListener('change', e=>{
+    if(e.target.value==='sim') alert('Marque em Tratamentos se a plataforma é substituta/solidária conforme o caso.');
+  });
+
+  // Créditos
+  const cred = {
+    ins:  $('#cred_insumos'), imob: $('#cred_imob'), ant: $('#cred_saldo_ant')
+  };
+  [cred.ins, cred.imob, cred.ant].forEach(el=>{
+    el.addEventListener('input', updateBaseCreditsKpis);
+  });
+  function updateBaseCreditsKpis(){
+    state.credits.insumos = +cred.ins.value||0;
+    state.credits.imob    = +cred.imob.value||0;
+    state.credits.saldo_ant = +cred.ant.value||0;
+    const tot = state.credits.insumos + state.credits.imob + state.credits.saldo_ant;
+    $('#kpi_base').textContent = fmt(state.base);
+    $('#kpi_creds').textContent = fmt(tot);
+    quickCred.textContent = fmt(tot);
+  }
+
+  // Apuração
+  const aliq = {
+    cbs: $('#aliq_cbs'), est: $('#aliq_ibs_est'), mun: $('#aliq_ibs_mun')
+  };
+  function getAliq(){
+    state.aliq.cbs     = +aliq.cbs.value||0;
+    state.aliq.ibs_est = +aliq.est.value||0;
+    state.aliq.ibs_mun = +aliq.mun.value||0;
+    return state.aliq;
+  }
+  function calcular(){
+    const a = getAliq();
+    const baseTributavel = state.ops.reduce((sum, r)=> sum + (r.exp==='sim' ? 0 : r.base), 0); // exportações imunes (ilustrativo)
+    const debCBS = baseTributavel * a.cbs/100;
+    const debIBS_est = baseTributavel * a.ibs_est/100;
+    const debIBS_mun = baseTributavel * a.ibs_mun/100;
+    const debIBS = debIBS_est + debIBS_mun;
+    const creds = (state.credits.insumos||0) + (state.credits.imob||0) + (state.credits.saldo_ant||0);
+
+    const totalDeb = debCBS + debIBS;
+    const saldo = totalDeb - creds;
+
+    // KPIs
+    $('#kpi_alit').textContent = pct(a.cbs + a.ibs_est + a.ibs_mun);
+    $('#kpi_cbs').textContent  = fmt(debCBS);
+    $('#kpi_ibs').textContent  = fmt(debIBS);
+    $('#kpi_saldo').textContent= fmt(saldo);
+
+    // Resultados (step 6)
+    $('#r_base').textContent   = fmt(baseTributavel);
+    $('#r_cbs').textContent    = fmt(debCBS);
+    $('#r_ibs_est').textContent= fmt(debIBS_est);
+    $('#r_ibs_mun').textContent= fmt(debIBS_mun);
+    $('#r_creds').textContent  = fmt(creds);
+    $('#r_saldo').textContent  = fmt(saldo);
+
+    // Guardar
+    state.resultado = {
+      base: baseTributavel, cbs: debCBS, ibs: debIBS, ibs_est: debIBS_est, ibs_mun: debIBS_mun,
+      total: totalDeb, saldo
+    };
+  }
+  $('#calcular').addEventListener('click', ()=>{ calcular(); setStep(6); });
+  $('#recalcular').addEventListener('click', ()=>{ calcular(); });
+
+  // Persistência local
+  function snapshot(){
+    return {
+      meta:{competencia: $('#competencia').value, empresa: $('#empresa_nome').value, cnpj: $('#cnpj').value, cnae: $('#cnae').value, uf: $('#uf').value, regime: $('#regime').value},
+      ops: state.ops, tratamentos:{
+        regime_especifico: $('#regime_especifico').value, beneficios: $('#beneficios').value, plataforma: $('#plat_resp').value, cashback: $('#cashback').value
+      },
+      credits: state.credits, aliq: state.aliq, resultado: state.resultado
+    };
+  }
+  function persist(){
+    localStorage.setItem('rtb_simulador', JSON.stringify(snapshot()));
+    alert('Rascunho salvo com sucesso no navegador.');
+  }
+  $('#persistir').addEventListener('click', persist);
+  $('#salvarBtn').addEventListener('click', persist);
+  $('#limparTudo').addEventListener('click', ()=>{
+    if(confirm('Limpar tudo?')){ localStorage.removeItem('rtb_simulador'); location.reload(); }
+  });
+
+  // Export JSON
+  $('#exportar').addEventListener('click', ()=>{
+    const blob = new Blob([JSON.stringify(snapshot(), null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `simulador-ibs-cbs-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  // Init
+  setStep(1);
+  updateBaseCreditsKpis();
+
+  // Optional: carregar rascunho
+  try{
+    const raw = localStorage.getItem('rtb_simulador');
+    if(raw){
+      const data = JSON.parse(raw);
+      $('#competencia').value = data?.meta?.competencia||'';
+      $('#empresa_nome').value= data?.meta?.empresa||'';
+      $('#cnpj').value = data?.meta?.cnpj||'';
+      $('#cnae').value = data?.meta?.cnae||'';
+      $('#uf').value   = data?.meta?.uf||'';
+      $('#regime').value= data?.meta?.regime||'regular';
+
+      state.ops = data?.ops||[]; renderOps();
+
+      $('#regime_especifico').value = data?.tratamentos?.regime_especifico||'';
+      $('#beneficios').value = data?.tratamentos?.beneficios||'';
+      $('#plat_resp').value = data?.tratamentos?.plataforma||'';
+      $('#cashback').value = data?.tratamentos?.cashback||'';
+
+      cred.ins.value = data?.credits?.insumos||'';
+      cred.imob.value= data?.credits?.imob||'';
+      cred.ant.value = data?.credits?.saldo_ant||'';
+      updateBaseCreditsKpis();
+
+      aliq.cbs.value = data?.aliq?.cbs||'';
+      aliq.est.value = data?.aliq?.ibs_est||'';
+      aliq.mun.value = data?.aliq?.ibs_mun||'';
+      if(data?.resultado){ calcular(); }
+    }
+  }catch(e){ /* ignore */ }
+
+})();
+</script>
+</body>
+</html>
